@@ -6,6 +6,7 @@ class Customer extends Component {
     super(props);
     this.state = {
       id: props.id,
+      sr: props.sr,
       name: props.name,
       email: props.email,
       membershipJoinDate: props.membershipJoinDate,
@@ -30,11 +31,11 @@ class Customer extends Component {
     return (
       <tr onClick={this.setRedirect} id={this.state.id} className="items">
         {this.renderRedirect()}
-        <td>{this.state.id}</td>
+        <td>{this.state.sr}</td>
         <td>{this.state.name}</td>
         <td>{this.state.email}</td>
         <td>{this.state.membershipJoinDate}</td>
-        <td>{this.state.membershipJoinDate}</td>
+        <td>{this.state.membershipEndDate}</td>
       </tr>
     );
   }

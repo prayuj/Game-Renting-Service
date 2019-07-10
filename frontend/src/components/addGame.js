@@ -8,13 +8,18 @@ class AddGame extends Component {
     this.state = {
       game_name: "",
       game_description: "",
-      game_MRP: "",
-      game_ps4: false,
-      serial_ps4: "",
-      game_xbox: false,
-      serial_xbox: ""
+      game_properties: [
+        {
+          id: 1,
+          serial: "",
+          console: "",
+          mrp: ""
+        }
+      ],
+      count: 1
     };
-
+    this.onAdd = this.onAdd.bind(this);
+    this.onDelete = this.onDelete.bind(this);
     this.onChangeGameDescription = this.onChangeGameDescription.bind(this);
     this.onChangeGameName = this.onChangeGameName.bind(this);
     this.onChangeGameMRP = this.onChangeGameMRP.bind(this);
@@ -23,6 +28,38 @@ class AddGame extends Component {
     this.onChangeXBOX = this.onChangeXBOX.bind(this);
     this.onCounterXBOX = this.onCounterXBOX.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
+  }
+
+  onAdd() {
+    let temp_game_properties = this.state.game_properties;
+    temp_game_properties.push({
+      id: this.state.count + 1,
+      serial: "",
+      console: "",
+      mrp: ""
+    });
+    console.log(temp_game_properties);
+    this.setState({
+      game_properties: temp_game_properties,
+      count: this.state.count + 1
+    });
+  }
+
+  onDelete(e) {
+    console.log(e.target.id);
+    let temp_game_properties = this.state.game_properties;
+    console.log(temp_game_properties);
+    for (let i = 0; i < temp_game_properties.length; i++) {
+      console.log(temp_game_properties[i].id.toString() == e.target.id);
+      if (temp_game_properties[i].id == e.target.id.toString()) {
+        console.log("Found");
+        temp_game_properties.splice(i, 1);
+      }
+    }
+    console.log(temp_game_properties);
+    this.setState({
+      game_properties: temp_game_properties
+    });
   }
 
   onChangeGameDescription(e) {
@@ -71,20 +108,27 @@ class AddGame extends Component {
 
   onSubmit(e) {
     e.preventDefault();
-
+    console.log(e.target[2].value);
     console.log(`Form submitted:`);
-    console.log(`Game Name: ${this.state.game_name}`);
-    console.log(`Game Description: ${this.state.game_description}`);
-    console.log(`Game MRP: ${this.state.game_MRP}`);
-    console.log(`PS4: ${this.state.game_ps4}`);
-    console.log(`XBOX: ${this.state.game_xbox}`);
+    console.log(`Game Name: ${e.target.name.value}`);
+    console.log(`Game Description: ${e.target.description.value}`);
+    console.log("Game Properties");
+    let temp_game_properties = this.state.game_properties;
+    for (let i = 0; i < temp_game_properties.length; i++) {
+      console.log("hello");
+      let index = 4 * i + 2;
+      temp_game_properties[i].id = i + 1;
+      temp_game_properties[i].serial = e.target[index].value;
+      temp_game_properties[i].console = e.target[index + 1].value;
+      temp_game_properties[i].mrp = e.target[index + 2].value;
+      console.log(temp_game_properties[i]);
+    }
 
-    // const newTodo = {
-    //   todo_description: this.state.todo_description,
-    //   todo_responsible: this.state.todo_responsible,
-    //   todo_priority: this.state.todo_priority,
-    //   todo_completed: this.state.todo_completed
-    // };
+    const newGame = {
+      todo_description: this.state.game_name,
+      todo_responsible: this.state.game_description,
+      game_properties: temp_game_properties
+    };
 
     // axios
     //   .post("http://localhost:4000/todos/add", newTodo)
@@ -118,72 +162,63 @@ class AddGame extends Component {
         <form onSubmit={this.onSubmit}>
           <div className="form-group">
             <label>Name: </label>
-            <input
-              type="text"
-              className="form-control"
-              value={this.state.game_name}
-              onChange={this.onChangeGameName}
-            />
+            <input type="text" className="form-control" name="name" />
           </div>
           <div className="form-group">
             <label>Description: </label>
-            <input
-              type="text"
-              className="form-control"
-              value={this.state.game_description}
-              onChange={this.onChangeGameDescription}
-            />
+            <input type="text" className="form-control" name="description" />
           </div>
-          <div className="form-group">
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="inlineCheckbox1"
-                value="PS4"
-                checked={this.state.game_ps4}
-                onChange={this.onChangePS4}
-              />
-              <label class="form-check-label" for="inlineCheckbox1">
-                PS4
-              </label>
-              <div class="col" style={{ display: "inline" }}>
+          {this.state.game_properties.map(game => (
+            <div className="form-row" key={game.id}>
+              <div className="form-group col-md-6">
                 <input
                   type="text"
-                  class="form-control"
-                  placeholder="Number"
-                  disabled={!this.state.game_ps4}
+                  className="form-control"
+                  placeholder="Serial No."
+                  name="serial"
                 />
               </div>
-            </div>
-            <br />
-            <div class="form-check form-check-inline">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="inlineCheckbox2"
-                value="XBOX"
-                checked={this.state.game_xbox}
-                onChange={this.onChangeXBOX}
-              />
-              <label class="form-check-label" for="inlineCheckbox2">
-                XBOX
-              </label>
-              <div class="col">
+              <div className="form-group col-md-3">
+                <select className="form-control" name="console">
+                  <option>Choose a console</option>
+                  <option>PS4</option>
+                  <option>XBOX One</option>
+                </select>
+              </div>
+              <div className="form-group col-md-1 ">
                 <input
                   type="text"
-                  class="form-control"
-                  placeholder="Number"
-                  disabled={!this.state.game_xbox}
+                  className="form-control"
+                  placeholder="Price"
+                  name="price"
                 />
               </div>
+              <div className="form-group">
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={this.onDelete}
+                  id={game.id}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
+          ))}
 
+          <div className="form-group">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={this.onAdd}
+            >
+              Add
+            </button>
+          </div>
           <div className="form-group">
             <input
               type="submit"
-              value="Create Todo"
+              value="Add new Game"
               className="btn btn-primary"
             />
           </div>
