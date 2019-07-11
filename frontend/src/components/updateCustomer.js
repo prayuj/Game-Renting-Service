@@ -79,10 +79,7 @@ class UpdateCustomer extends Component {
     };
 
     axios
-      .post(
-        "http://localhost:4000/customer/update/5d258ceaf2b28324283a7d5c",
-        customer
-      )
+      .post("http://localhost:4000/customer/update/" + this.state.id, customer)
       .then(res => {
         console.log(res.data);
         this.setRedirect();
