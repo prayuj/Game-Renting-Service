@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Customer from "./customer";
 import axios from "axios";
+import { Redirect } from "react-router-dom";
 
 class Customers extends Component {
   constructor(props) {
@@ -32,10 +33,30 @@ class Customers extends Component {
     console.log(today);
     return today;
   }
+
+  setRedirect = () => {
+    console.log("Test");
+    this.setState({
+      redirect: true
+    });
+  };
+
+  renderRedirect = () => {
+    if (this.state.redirect) {
+      return <Redirect push to={"/add_customer/"} />;
+    }
+  };
   render() {
     console.log(this.state.customers);
     return (
       <div>
+        {this.renderRedirect()}
+        <input
+          type="button"
+          className="btn btn-primary"
+          value="Add Customer"
+          onClick={this.setRedirect}
+        />
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
             <tr>

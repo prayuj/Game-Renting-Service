@@ -8,6 +8,8 @@ import GamePage from "./components/gamePage";
 import CustomerPage from "./components/customerPage";
 import AddGame from "./components/addGame";
 import AddCustomer from "./components/addCustomer";
+import UpdateCustomer from "./components/updateCustomer";
+import AddPlan from "./components/addPlan";
 import "./App.css";
 
 function App() {
@@ -45,6 +47,8 @@ function App() {
       <Route path="/customer/:id" component={CustomerPage} />
       <Route path="/add_game" component={AddGame} />
       <Route path="/add_customer" component={AddCustomer} />
+      <Route path="/update_customer/:id" component={UpdateCustomer} />
+      <Route path="/add_plan/:id" component={AddPlan} />
     </Router>
   );
 }

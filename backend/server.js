@@ -25,6 +25,20 @@ customerRoutes.route("/").get(function(req, res) {
   );
 });
 
+customerRoutes.route("/:id").get(function(req, res) {
+  let id = req.params.id;
+  Customer.findById(id, function(err, cust) {
+    res.json(cust);
+  });
+});
+
+customerRoutes.route("/plan/:id").get(function(req, res) {
+  let id = req.params.id;
+  Customer.findById(id, function(err, cust) {
+    res.json(cust.membership);
+  });
+});
+
 customerRoutes.route("/add").post(function(req, res) {
   let customer = new Customer(req.body);
   customer
@@ -37,6 +51,64 @@ customerRoutes.route("/add").post(function(req, res) {
     .catch(err => {
       res.status(400).send("adding new customer failed");
     });
+});
+
+customerRoutes.route("/update/:id").post(function(req, res) {
+  Customer.findById(req.params.id, function(err, cust) {
+    if (!cust) res.status(404).send("data is not found");
+    else {
+      console.log(req.body);
+      cust.name = req.body.name;
+      cust.email = req.body.email;
+      cust.address = req.body.address;
+      cust.address2 = req.body.address2;
+      cust.city = req.body.city;
+      cust.zip = req.body.zip;
+      cust.modile_no = req.body.modile_no;
+      cust.alt_modile_no = req.body.alt_modile_no;
+
+      cust
+        .save()
+        .then(cust => {
+          res.json("Customer updated!");
+        })
+        .catch(err => {
+          res.status(400).send("Update not possible");
+        });
+    }
+  });
+});
+
+// customerRoutes.route("/add_plan/:id").post(function(req, res) {
+//   Customer.findById(req.params.id, function(err, cust) {
+//     if (!cust) res.status(404).send("data is not found");
+//     else {
+//       console.log(req.body.membership);
+//       cust.membership = req.body.membership;
+
+//       cust
+//         .save()
+//         .then(cust => {
+//           res.json("Customer updated!");
+//         })
+//         .catch(err => {
+//           res.status(400).send("Update not possible");
+//         });
+//     }
+//   });
+// });
+
+customerRoutes.route("/add_plan/:id").post(function(req, res) {
+  console.log(req.body);
+  Customer.findOneAndUpdate(
+    { _id: req.params.id },
+    req.body,
+    { upsert: true },
+    function(err, doc) {
+      if (err) return res.send(500, { error: err });
+      return res.send("succesfully saved");
+    }
+  );
 });
 
 mongoose.connect("mongodb://127.0.0.1:27017/gamerent", {

@@ -23,6 +23,9 @@ let Customer = new Schema({
   dateOfJoin: {
     type: Date
   },
+  zip: {
+    type: String
+  },
   membership: [
     {
       plan: String,
