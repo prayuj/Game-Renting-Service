@@ -2,7 +2,11 @@ import React, { Component } from "react";
 
 class Dashboard extends Component {
   render() {
-    return <div>Hello from Dashboard</div>;
+    return (
+      <div>
+        <input type="button" className="btn btn-primary" value="Issue" />
+      </div>
+    );
   }
 }
 

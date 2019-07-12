@@ -33,6 +33,14 @@ let Customer = new Schema({
       end: Date,
       active: Boolean
     }
+  ],
+  game: [
+    {
+      game_id: String,
+      item_id: String,
+      dateIssue: Date,
+      return: Boolean
+    }
   ]
 });
 module.exports = mongoose.model("Customer", Customer);

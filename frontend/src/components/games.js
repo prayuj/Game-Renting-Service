@@ -1,63 +1,57 @@
 import React, { Component } from "react";
 import Game from "./game";
-import Modal from "./modal";
+import axios from "axios";
 
 class Games extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      games: [
-        {
-          id: 1,
-          name: "Marvel's Spider Man",
-          availableIn: ["PS4", "Xbox One"],
-          status: "In store",
-          noAvailable: 2
-        },
-        {
-          id: 2,
-          name: "Grand Theft Auto V",
-          availableIn: ["PS4", "Xbox One"],
-          status: "In store",
-          noAvailable: 1
-        },
-        {
-          id: 3,
-          name: "God of War - Standard Edition",
-          availableIn: ["PS4"],
-          status: "In store",
-          noAvailable: 4
-        },
-        {
-          id: 4,
-          name: "Watch Dogs 2",
-          availableIn: ["PS4", "Xbox One"],
-          status: "In store",
-          noAvailable: 1
-        },
-        {
-          id: 5,
-          name: "Far Cry 5",
-          availableIn: ["Xbox One"],
-          status: "Not in Stock",
-          noAvailable: 0
-        },
-        {
-          id: 6,
-          name: "WWE 2K19",
-          availableIn: ["PS4", "Xbox One"],
-          status: "Unavailable",
-          noAvailable: 0
-        },
-        {
-          id: 7,
-          name: "Call of Duty: Infinite Warfare",
-          availableIn: ["PS4", "Xbox One"],
-          status: "In store",
-          noAvailable: 2
-        }
-      ]
+      games: []
     };
+  }
+
+  componentDidMount() {
+    this.getGames();
+  }
+
+  getGames() {
+    axios.get("http://localhost:4000/game/").then(res => {
+      console.log(res.data);
+      let temp_game = [];
+      for (let i = 0; i < res.data.length; i++) {
+        let PS4 = false;
+        let XBOX = false;
+        for (let j = 0; j < res.data[i].items.length; j++) {
+          if (res.data[i].items[j].console === "PS4") PS4 = true;
+          else XBOX = true;
+        }
+        if (PS4 && XBOX) {
+          temp_game.push({
+            _id: res.data[i]._id,
+            name: res.data[i].name,
+            noAvailable: res.data[i].items.length,
+            availableIn: ["PS4", "Xbox One"]
+          });
+        } else if (PS4) {
+          temp_game.push({
+            _id: res.data[i]._id,
+            name: res.data[i].name,
+            noAvailable: res.data[i].items.length,
+            availableIn: ["PS4"]
+          });
+        } else {
+          temp_game.push({
+            _id: res.data[i]._id,
+            name: res.data[i].name,
+            noAvailable: res.data[i].items.length,
+            availableIn: ["Xbox One"]
+          });
+        }
+      }
+      this.setState({
+        games: temp_game
+      });
+    });
   }
   render() {
     return (
@@ -68,17 +62,16 @@ class Games extends Component {
               <th>Id</th>
               <th>Name</th>
               <th>Available In</th>
-              <th>Status</th>
               <th>Number Available</th>
             </tr>
           </thead>
           <tbody>
-            {this.state.games.map(game => (
+            {this.state.games.map((game, index) => (
               <Game
-                id={game.id}
+                _id={game._id}
+                sr={index + 1}
                 name={game.name}
                 availableIn={game.availableIn}
-                status={game.status}
                 noAvailable={game.noAvailable}
               />
             ))}
