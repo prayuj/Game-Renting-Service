@@ -32,6 +32,14 @@ class CustomerPage extends Component {
       this.setState({
         redirect_to_update: true
       });
+    else if (e.target.value === "Issue")
+      this.setState({
+        redirect_to_issue: true
+      });
+    else if (e.target.value === "Return")
+      this.setState({
+        redirect_to_return: true
+      });
     else
       this.setState({
         redirect_to_add_plan: true
@@ -45,6 +53,12 @@ class CustomerPage extends Component {
     if (this.state.redirect_to_add_plan) {
       return <Redirect push to={"/add_plan/" + this.state.id} />;
     }
+    if (this.state.redirect_to_issue) {
+      return <Redirect push to={"/issue/" + this.state.id} />;
+    }
+    if (this.state.redirect_to_return) {
+      return <Redirect push to={"/return/" + this.state.id} />;
+    }
   };
   render() {
     console.log(this.state.data);
@@ -56,6 +70,20 @@ class CustomerPage extends Component {
             <span>{member.start}</span>
             <span>{member.end}</span>
             <span>{member.active ? "True" : "False"}</span>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div />
+    );
+
+    let game = this.state.data.game ? (
+      <div>
+        {this.state.data.game.map(game => (
+          <div>
+            <span>{game.game_id}</span>
+            <span>{game.item_id}</span>
+            <span>{game.dateIssue}</span>
           </div>
         ))}
       </div>
@@ -77,6 +105,18 @@ class CustomerPage extends Component {
           className="btn btn-primary"
           value="Add Plan"
         />
+        <input
+          type="button"
+          onClick={this.setRedirect}
+          className="btn btn-primary"
+          value="Issue"
+        />
+        <input
+          type="button"
+          onClick={this.setRedirect}
+          className="btn btn-primary"
+          value="Return"
+        />
         <div>{this.state.data.name}</div>
         <div>{this.state.data.email}</div>
         <div>{this.state.data.address}</div>
@@ -86,6 +126,7 @@ class CustomerPage extends Component {
         <div>{this.state.data.alt_mobile_no}</div>
         <div>{this.state.data.dateOfJoin}</div>
         {membership}
+        {game}
       </div>
     );
   }

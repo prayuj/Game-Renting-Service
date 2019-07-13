@@ -12,6 +12,7 @@ import UpdateCustomer from "./components/updateCustomer";
 import AddPlan from "./components/addPlan";
 import UpdateGame from "./components/updateGame";
 import Issue from "./components/issue";
+import Return from "./components/return";
 import "./App.css";
 
 function App() {
@@ -53,6 +54,7 @@ function App() {
       <Route path="/update_game/:id" component={UpdateGame} />
       <Route path="/add_plan/:id" component={AddPlan} />
       <Route path="/issue/:id" component={Issue} />
+      <Route path="/return/:id" component={Return} />
     </Router>
   );
 }

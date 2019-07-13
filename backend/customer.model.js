@@ -39,8 +39,10 @@ let Customer = new Schema({
       game_id: String,
       item_id: String,
       dateIssue: Date,
+      dateReturn: Date,
       return: Boolean
     }
   ]
 });
+
 module.exports = mongoose.model("Customer", Customer);
