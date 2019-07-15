@@ -7,16 +7,17 @@ class Customers extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      customers: []
+      customers: [],
+      search: ""
     };
-    this.getTodos = this.getTodos.bind(this);
+    this.getCustomers = this.getCustomers.bind(this);
   }
 
   componentDidMount() {
-    this.getTodos();
+    this.getCustomers();
   }
 
-  getTodos() {
+  getCustomers() {
     axios.get("http://localhost:4000/customer/").then(res => {
       this.setState({
         customers: res.data
@@ -30,12 +31,10 @@ class Customers extends Component {
     var mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
     var yyyy = date.getFullYear();
     var today = dd + "/" + mm + "/" + yyyy;
-    console.log(today);
     return today;
   }
 
   setRedirect = () => {
-    console.log("Test");
     this.setState({
       redirect: true
     });
@@ -47,7 +46,6 @@ class Customers extends Component {
     }
   };
   render() {
-    console.log(this.state.customers);
     return (
       <div>
         {this.renderRedirect()}
@@ -70,6 +68,7 @@ class Customers extends Component {
           <tbody>
             {this.state.customers.map((customer, index) => (
               <Customer
+                mode="customers"
                 id={customer._id}
                 sr={index + 1}
                 name={customer.name}

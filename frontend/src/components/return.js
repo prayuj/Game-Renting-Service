@@ -17,10 +17,10 @@ class Return extends Component {
     axios
       .get("http://localhost:4000/customer/return/" + this.state.id)
       .then(res => {
-        console.log(res.data[0].game);
-        if (res.data[0].game.length != 0)
+        console.log(res.data);
+        if (res.data.length != 0)
           this.setState({
-            data: res.data,
+            games_to_return: res.data,
             show: true
           });
         else {
@@ -28,7 +28,8 @@ class Return extends Component {
             show: false
           });
         }
-      });
+      })
+      .catch(err => console.log(err));
   }
 
   convertDate(dates) {
@@ -40,41 +41,7 @@ class Return extends Component {
     console.log(today);
     return today;
   }
-  //   handleForm(e) {
-  //     e.preventDefault();
-  //     console.log(e.target.game.value, e.target.console.value);
-  //     let game_id = e.target.game.value;
-  //     let game_console = e.target.console.value;
-  //     axios
-  //       .post("http://localhost:4000/game/issue", {
-  //         game_id: game_id,
-  //         cust_id: this.state.id,
-  //         console: game_console
-  //       })
-  //       .then(res => {
-  //         console.log(res.data.game_item_id);
-  //         if (res.data.game_item_id === "Not Available") {
-  //           console.log("Cant Issue game due to unavailbility");
-  //         } else {
-  //           let sendObject = {
-  //             game_id: game_id,
-  //             item_id: res.data.game_item_id,
-  //             dateIssue: new Date(),
-  //             return: false
-  //           };
-  //           axios
-  //             .post(
-  //               "http://localhost:4000/customer/issue/" + this.state.id,
-  //               sendObject
-  //             )
-  //             .then(res => {
-  //               console.log(res.body);
-  //             })
-  //             .catch(err => console.log(err));
-  //         }
-  //       })
-  //       .catch(err => console.log(err));
-  //   }
+
   handleClick(e) {
     console.log(e.target.id.split(" "));
     let id = e.target.id.split(" ");
@@ -93,24 +60,19 @@ class Return extends Component {
     if (this.state.show) {
       return (
         <div>
-          {this.state.data[0].game.map(game => (
+          {this.state.games_to_return.map(game => (
             <div>
-              {!game.return ? (
-                <div>
-                  <span>{game.game_id}</span>
-                  <span>{game.item_id}</span>
-                  <span>{this.convertDate(game.dateIssue)}</span>
-                  <input
-                    type="button"
-                    value="Return"
-                    className="btn btn-primary"
-                    onClick={this.handleClick}
-                    id={game.game_id + " " + game.item_id}
-                  />
-                </div>
-              ) : (
-                ""
-              )}
+              <span />
+              <span>{game.gameInfo.name}</span>
+              <span>{game._id}</span>
+              <span>{this.convertDate(game.game.dateIssue)}</span>
+              <input
+                type="button"
+                value="Return"
+                className="btn btn-primary"
+                onClick={this.handleClick}
+                id={game.game.game_id + " " + game.game.item_id}
+              />
             </div>
           ))}
         </div>

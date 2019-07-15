@@ -19,6 +19,7 @@ class GamePage extends Component {
     axios
       .get("http://localhost:4000/game/" + this.state.id)
       .then(res => {
+        console.log(res.data, this.state.id);
         this.setState({
           data: res.data
         });

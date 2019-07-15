@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Game from "./game";
 import axios from "axios";
+import { Redirect } from "react-router-dom";
 
 class Games extends Component {
   constructor(props) {
@@ -16,46 +17,33 @@ class Games extends Component {
 
   getGames() {
     axios.get("http://localhost:4000/game/").then(res => {
-      console.log(res.data);
-      let temp_game = [];
-      for (let i = 0; i < res.data.length; i++) {
-        let PS4 = false;
-        let XBOX = false;
-        for (let j = 0; j < res.data[i].items.length; j++) {
-          if (res.data[i].items[j].console === "PS4") PS4 = true;
-          else XBOX = true;
-        }
-        if (PS4 && XBOX) {
-          temp_game.push({
-            _id: res.data[i]._id,
-            name: res.data[i].name,
-            noAvailable: res.data[i].items.length,
-            availableIn: ["PS4", "Xbox One"]
-          });
-        } else if (PS4) {
-          temp_game.push({
-            _id: res.data[i]._id,
-            name: res.data[i].name,
-            noAvailable: res.data[i].items.length,
-            availableIn: ["PS4"]
-          });
-        } else {
-          temp_game.push({
-            _id: res.data[i]._id,
-            name: res.data[i].name,
-            noAvailable: res.data[i].items.length,
-            availableIn: ["Xbox One"]
-          });
-        }
-      }
       this.setState({
-        games: temp_game
+        games: res.data
       });
     });
   }
+
+  setRedirect = () => {
+    this.setState({
+      redirect: true
+    });
+  };
+
+  renderRedirect = () => {
+    if (this.state.redirect) {
+      return <Redirect push to={"/add_game/"} />;
+    }
+  };
   render() {
     return (
       <div>
+        {this.renderRedirect()}
+        <input
+          type="button"
+          className="btn btn-primary"
+          value="Add Game"
+          onClick={this.setRedirect}
+        />
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
             <tr>
@@ -68,11 +56,20 @@ class Games extends Component {
           <tbody>
             {this.state.games.map((game, index) => (
               <Game
+                mode="games"
                 _id={game._id}
                 sr={index + 1}
                 name={game.name}
-                availableIn={game.availableIn}
-                noAvailable={game.noAvailable}
+                availableIn={
+                  game.numberPS4Available > 0
+                    ? game.numberXBOXAvailable > 0
+                      ? ["PS4", "XBOX One"]
+                      : ["PS4"]
+                    : game.numberXBOXAvailable > 0
+                    ? ["XBOX One"]
+                    : ["Not Available"]
+                }
+                noAvailable={game.numberAvailable}
               />
             ))}
           </tbody>

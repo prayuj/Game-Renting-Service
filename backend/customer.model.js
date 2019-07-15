@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const ObjectId = Schema.ObjectId;
 
 let Customer = new Schema({
   name: {
@@ -36,13 +37,15 @@ let Customer = new Schema({
   ],
   game: [
     {
-      game_id: String,
-      item_id: String,
+      game_id: ObjectId,
+      item_id: ObjectId,
       dateIssue: Date,
       dateReturn: Date,
       return: Boolean
     }
   ]
 });
+
+Customer.index({ name: "text" });
 
 module.exports = mongoose.model("Customer", Customer);

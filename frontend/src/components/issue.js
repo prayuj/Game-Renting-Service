@@ -6,12 +6,14 @@ class Issue extends Component {
     super(props);
     this.state = {
       id: props.match.params.id,
-      show: true
+      show: true,
+      games: []
     };
     this.handleForm = this.handleForm.bind(this);
   }
   componentDidMount() {
     this.getCustomerDetail();
+    this.getGames();
   }
   getCustomerDetail() {
     axios
@@ -59,6 +61,14 @@ class Issue extends Component {
       })
       .catch(err => console.log(err));
   }
+  getGames() {
+    axios.get("http://localhost:4000/game/issue/get").then(res => {
+      console.log(res.data);
+      this.setState({
+        games: res.data
+      });
+    });
+  }
   handleForm(e) {
     e.preventDefault();
     console.log(e.target.game.value, e.target.console.value);
@@ -100,8 +110,13 @@ class Issue extends Component {
       return (
         <div>
           <form onSubmit={this.handleForm}>
-            <label>Game ID</label>
-            <input name="game" className="form-control" placeholder="Game ID" />
+            <label>Game</label>
+            <select className="form-control" name="game">
+              <option>Choose a game</option>
+              {this.state.games.map(game => (
+                <option value={game._id}>{game.name}</option>
+              ))}
+            </select>
             <label>Console</label>
             <select className="form-control" name="console">
               <option>Choose a console</option>
