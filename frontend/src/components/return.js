@@ -43,12 +43,13 @@ class Return extends Component {
   }
 
   handleClick(e) {
-    console.log(e.target.id.split(" "));
+    console.log(e.target.id);
     let id = e.target.id.split(" ");
     axios
       .post("http://localhost:4000/customer/return/" + this.state.id, {
-        game_id: id[0],
-        item_id: id[1]
+        transaction_id: id[0],
+        game_id: id[1],
+        item_id: id[2]
       })
       .then(res => {
         console.log(res.data);
@@ -56,22 +57,20 @@ class Return extends Component {
       .catch(err => console.log(err));
   }
   render() {
-    console.log(this.state.data);
     if (this.state.show) {
       return (
         <div>
           {this.state.games_to_return.map(game => (
             <div>
-              <span />
               <span>{game.gameInfo.name}</span>
-              <span>{game._id}</span>
-              <span>{this.convertDate(game.game.dateIssue)}</span>
+              <span>{game.gameInfo.items.console}</span>
+              <span>{this.convertDate(game.date_issue)}</span>
               <input
                 type="button"
                 value="Return"
                 className="btn btn-primary"
                 onClick={this.handleClick}
-                id={game.game.game_id + " " + game.game.item_id}
+                id={game._id + " " + game.game_id + " " + game.item_id}
               />
             </div>
           ))}

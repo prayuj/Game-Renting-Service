@@ -12,25 +12,6 @@ class AddPlan extends Component {
     };
     this.handleForm = this.handleForm.bind(this);
   }
-  componentDidMount() {
-    this.getPlans();
-  }
-
-  getPlans() {
-    axios
-      .get("http://localhost:4000/customer/plan/" + this.state.id)
-      .then(res => {
-        let data = res.data;
-        data.sort(function(a, b) {
-          if (a.active < b.active) return 1;
-          if (a.active > b.active) return -1;
-          return 0;
-        });
-        this.setState({
-          membership: data
-        });
-      });
-  }
 
   convertDate(dates) {
     var date = new Date(dates);
@@ -100,14 +81,6 @@ class AddPlan extends Component {
           </div>
           <input type="submit" className="btn btn-primary" value="Add Plan" />
         </form>
-        {this.state.membership.map(member => (
-          <div>
-            <span>{member.plan}</span>
-            <span>{this.convertDate(member.start)}</span>
-            <span>{this.convertDate(member.end)}</span>
-            <span>{member.active ? "True" : "False"}</span>
-          </div>
-        ))}
       </div>
     );
   }

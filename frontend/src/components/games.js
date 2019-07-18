@@ -7,8 +7,10 @@ class Games extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      games: []
+      games: [],
+      filtered: []
     };
+    this.handleChange = this.handleChange.bind(this);
   }
 
   componentDidMount() {
@@ -18,7 +20,8 @@ class Games extends Component {
   getGames() {
     axios.get("http://localhost:4000/game/").then(res => {
       this.setState({
-        games: res.data
+        games: res.data,
+        filtered: res.data
       });
     });
   }
@@ -34,6 +37,42 @@ class Games extends Component {
       return <Redirect push to={"/add_game/"} />;
     }
   };
+
+  handleChange(e) {
+    // Variable to hold the original version of the list
+    let currentList = [];
+    // Variable to hold the filtered list before putting into state
+    let newList = [];
+
+    // If the search bar isn't empty
+    if (e.target.value !== "") {
+      console.log("HERE 1");
+      // Assign the original list to currentList
+      currentList = this.state.games;
+
+      // Use .filter() to determine which items should be displayed
+      // based on the search terms
+      newList = currentList.filter(item => {
+        // change current item to lowercase
+        const lc = item.name.toLowerCase();
+        // change search term to lowercase
+        const filter = e.target.value.toLowerCase();
+        // check to see if the current list item includes the search term
+        // If it does, it will be added to newList. Using lowercase eliminates
+        // issues with capitalization in search terms and search content
+        return lc.includes(filter);
+      });
+      console.log(newList);
+    } else {
+      console.log("HERE 2");
+      // If the search bar is empty, set newList to original task list
+      newList = this.state.games;
+    }
+    // Set the filtered state based on what our rules added to newList
+    this.setState({
+      filtered: newList
+    });
+  }
   render() {
     return (
       <div>
@@ -43,6 +82,12 @@ class Games extends Component {
           className="btn btn-primary"
           value="Add Game"
           onClick={this.setRedirect}
+        />
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Search..."
+          onChange={this.handleChange}
         />
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
@@ -54,7 +99,7 @@ class Games extends Component {
             </tr>
           </thead>
           <tbody>
-            {this.state.games.map((game, index) => (
+            {this.state.filtered.map((game, index) => (
               <Game
                 mode="games"
                 _id={game._id}

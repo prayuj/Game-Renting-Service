@@ -1,33 +1,29 @@
 import React, { Component } from "react";
-import Customer from "./customer";
 import axios from "axios";
-import { Redirect } from "react-router-dom";
+import Transaction from "./transaction";
 
-class Customers extends Component {
+class Transactions extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      customers: [],
-      search: "",
+      transactions: [],
       filtered: []
     };
-    this.getCustomers = this.getCustomers.bind(this);
     this.handleChange = this.handleChange.bind(this);
-  }
 
+    this.getTransactions = this.getTransactions.bind(this);
+  }
   componentDidMount() {
-    this.getCustomers();
+    this.getTransactions();
   }
-
-  getCustomers() {
-    axios.get("http://localhost:4000/customer/").then(res => {
+  getTransactions() {
+    axios.get("http://localhost:4000/transaction").then(res =>
       this.setState({
-        customers: res.data,
+        transactions: res.data,
         filtered: res.data
-      });
-    });
+      })
+    );
   }
-
   convertDate(dates) {
     var date = new Date(dates);
     var dd = String(date.getDate()).padStart(2, "0");
@@ -37,18 +33,6 @@ class Customers extends Component {
     return today;
   }
 
-  setRedirect = () => {
-    this.setState({
-      redirect: true
-    });
-  };
-
-  renderRedirect = () => {
-    if (this.state.redirect) {
-      return <Redirect push to={"/add_customer/"} />;
-    }
-  };
-
   handleChange(e) {
     // Variable to hold the original version of the list
     let currentList = [];
@@ -57,15 +41,17 @@ class Customers extends Component {
 
     // If the search bar isn't empty
     if (e.target.value !== "") {
-      console.log("HERE 1");
+      //console.log("HERE 1");
       // Assign the original list to currentList
-      currentList = this.state.customers;
+      currentList = this.state.transactions;
+      let firstList = [];
+      let secondList = [];
 
       // Use .filter() to determine which items should be displayed
       // based on the search terms
-      newList = currentList.filter(item => {
+      firstList = currentList.filter(item => {
         // change current item to lowercase
-        const lc = item.name.toLowerCase();
+        const lc = item.gameInfo.name.toLowerCase();
         // change search term to lowercase
         const filter = e.target.value.toLowerCase();
         // check to see if the current list item includes the search term
@@ -73,11 +59,22 @@ class Customers extends Component {
         // issues with capitalization in search terms and search content
         return lc.includes(filter);
       });
-      console.log(newList);
+      secondList = currentList.filter(item => {
+        // change current item to lowercase
+        const lc = item.customerInfo.name.toLowerCase();
+        // change search term to lowercase
+        const filter = e.target.value.toLowerCase();
+        // check to see if the current list item includes the search term
+        // If it does, it will be added to newList. Using lowercase eliminates
+        // issues with capitalization in search terms and search content
+        return lc.includes(filter);
+      });
+      newList = firstList.concat(secondList);
+      //console.log(newList);
     } else {
-      console.log("HERE 2");
+      //console.log("HERE 2");
       // If the search bar is empty, set newList to original task list
-      newList = this.state.customers;
+      newList = this.state.transactions;
     }
     // Set the filtered state based on what our rules added to newList
     this.setState({
@@ -86,16 +83,8 @@ class Customers extends Component {
   }
 
   render() {
-    console.log(this.state.filtered);
     return (
       <div>
-        {this.renderRedirect()}
-        <input
-          type="button"
-          className="btn btn-primary"
-          value="Add Customer"
-          onClick={this.setRedirect}
-        />
         <input
           type="text"
           className="form-control"
@@ -106,24 +95,20 @@ class Customers extends Component {
           <thead>
             <tr>
               <th>Sr</th>
-              <th>Name</th>
-              <th>Email-ID</th>
-              <th>Membership start</th>
-              <th>Membership end</th>
+              <th>Transaction ID</th>
+              <th>Member Name</th>
+              <th>Game Name</th>
+              <th>Date Issue</th>
             </tr>
           </thead>
           <tbody>
-            {this.state.filtered.map((filter, index) => (
-              <Customer
-                mode="customers"
-                id={filter._id}
-                sr={index + 1}
-                name={filter.name}
-                email={filter.email}
-                membershipEndDate={this.convertDate(filter.membership[0].end)}
-                membershipJoinDate={this.convertDate(
-                  filter.membership[0].start
-                )}
+            {this.state.filtered.map((transaction, index) => (
+              <Transaction
+                index={index + 1}
+                id={transaction._id}
+                game_name={transaction.gameInfo.name}
+                customer_name={transaction.customerInfo.name}
+                date_issue={this.convertDate(transaction.date_issue)}
               />
             ))}
           </tbody>
@@ -133,4 +118,4 @@ class Customers extends Component {
   }
 }
 
-export default Customers;
+export default Transactions;

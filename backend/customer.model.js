@@ -34,15 +34,6 @@ let Customer = new Schema({
       end: Date,
       active: Boolean
     }
-  ],
-  game: [
-    {
-      game_id: ObjectId,
-      item_id: ObjectId,
-      dateIssue: Date,
-      dateReturn: Date,
-      return: Boolean
-    }
   ]
 });
 

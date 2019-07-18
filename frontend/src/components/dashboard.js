@@ -92,7 +92,7 @@ class Dashboard extends Component {
             <tr>
               <th>Sr</th>
               <th>Name</th>
-              <th>Issued By</th>
+              <th>Issued To</th>
               <th>Date Of Issue</th>
             </tr>
           </thead>
@@ -100,11 +100,11 @@ class Dashboard extends Component {
             {this.state.issue_game.map((game, index) => (
               <Game
                 mode="issue"
-                _id={game.game.game_id}
+                _id={game.game_id}
                 sr={index + 1}
                 name={game.gameInfo.name}
-                cust_name={game.name}
-                dateIssue={this.convertDate(game.game.dateIssue)}
+                cust_name={game.customerInfo.name}
+                dateIssue={this.convertDate(game.date_issue)}
               />
             ))}
           </tbody>
@@ -124,12 +124,12 @@ class Dashboard extends Component {
             {this.state.return_game.map((game, index) => (
               <Game
                 mode="return"
-                _id={game.game.game_id}
+                _id={game.game_id}
                 sr={index + 1}
                 name={game.gameInfo.name}
-                cust_name={game.name}
-                dateIssue={this.convertDate(game.game.dateIssue)}
-                dateReturn={this.convertDate(game.game.dateReturn)}
+                cust_name={game.customerInfo.name}
+                dateIssue={this.convertDate(game.date_issue)}
+                dateReturn={this.convertDate(game.date_return)}
               />
             ))}
           </tbody>

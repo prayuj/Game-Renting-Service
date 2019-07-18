@@ -13,8 +13,24 @@ class CustomerPage extends Component {
 
   componentDidMount() {
     this.getCustomerDetail();
+    this.getCustomerGameHistory();
   }
-
+  getCustomerGameHistory() {
+    axios
+      .get("http://localhost:4000/customer/history/" + this.state.id)
+      .then(res => {
+        console.log(res.data);
+        if (res.data)
+          this.setState({
+            history: res.data
+          });
+        else
+          this.setState({
+            history: []
+          });
+      })
+      .catch(err => console.log(err));
+  }
   getCustomerDetail() {
     axios
       .get("http://localhost:4000/customer/" + this.state.id)
@@ -27,8 +43,13 @@ class CustomerPage extends Component {
   }
 
   setRedirect = e => {
-    console.log(e.target.value);
-    if (e.target.value === "Update")
+    console.log(e.target.attributes[1].value);
+    if (e.target.attributes[0].value === "transaction") {
+      this.setState({
+        redirect_to_transaction: true,
+        transaction_id: e.target.attributes[1].value
+      });
+    } else if (e.target.value === "Update")
       this.setState({
         redirect_to_update: true
       });
@@ -40,7 +61,7 @@ class CustomerPage extends Component {
       this.setState({
         redirect_to_return: true
       });
-    else
+    else if (e.target.value === "Add Plan")
       this.setState({
         redirect_to_add_plan: true
       });
@@ -59,37 +80,67 @@ class CustomerPage extends Component {
     if (this.state.redirect_to_return) {
       return <Redirect push to={"/return/" + this.state.id} />;
     }
+    if (this.state.redirect_to_transaction) {
+      return <Redirect push to={"/transaction/" + this.state.transaction_id} />;
+    }
   };
+
+  convertDate(dates) {
+    var date = new Date(dates);
+    var dd = String(date.getDate()).padStart(2, "0");
+    var mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
+    var yyyy = date.getFullYear();
+    var today = dd + "/" + mm + "/" + yyyy;
+    return today;
+  }
   render() {
     console.log(this.state.data);
     let membership = this.state.data.membership ? (
-      <div>
-        {this.state.data.membership.map(member => (
-          <div>
-            <span>{member.plan}</span>
-            <span>{member.start}</span>
-            <span>{member.end}</span>
-            <span>{member.active ? "True" : "False"}</span>
-          </div>
-        ))}
-      </div>
+      this.state.data.membership.map((member, index) => (
+        <tr>
+          <td>{index + 1}</td>
+          <td>{member.plan}</td>
+          <td>{this.convertDate(member.start)}</td>
+          <td>{this.convertDate(member.end)}</td>
+          <td>{member.active ? "True" : "False"}</td>
+        </tr>
+      ))
     ) : (
       <div />
     );
 
-    let game = this.state.data.game ? (
-      <div>
-        {this.state.data.game.map(game => (
-          <div>
-            <span>{game.game_id}</span>
-            <span>{game.item_id}</span>
-            <span>{game.dateIssue}</span>
-          </div>
-        ))}
-      </div>
+    let history = this.state.history ? (
+      this.state.history.map((game, index) => (
+        <tr
+          className="items"
+          onClick={this.setRedirect}
+          value="transaction"
+          id={game._id}
+        >
+          <td value="transaction" id={game._id}>
+            {index + 1}
+          </td>
+          <td value="transaction" id={game._id}>
+            {game.gameInfo.name}
+          </td>
+          <td value="transaction" id={game._id}>
+            {game.gameInfo.items.console}
+          </td>
+          <td value="transaction" id={game._id}>
+            {game.gameInfo.items.serial_no}
+          </td>
+          <td value="transaction" id={game._id}>
+            {this.convertDate(game.date_issue)}
+          </td>
+          <td value="transaction" id={game._id}>
+            {game.return ? this.convertDate(game.date_return) : "Not Returned"}
+          </td>
+        </tr>
+      ))
     ) : (
       <div />
     );
+
     return (
       <div>
         {this.renderRedirect()}
@@ -117,16 +168,63 @@ class CustomerPage extends Component {
           className="btn btn-primary"
           value="Return"
         />
-        <div>{this.state.data.name}</div>
-        <div>{this.state.data.email}</div>
-        <div>{this.state.data.address}</div>
-        <div>{this.state.data.address2}</div>
-        <div>{this.state.data.zip}</div>
-        <div>{this.state.data.mobile_no}</div>
-        <div>{this.state.data.alt_mobile_no}</div>
-        <div>{this.state.data.dateOfJoin}</div>
-        {membership}
-        {game}
+        <div>
+          <strong>Name: </strong> {this.state.data.name}
+        </div>
+        <div>
+          <strong>Email: </strong>
+          {this.state.data.email}
+        </div>
+        <div>
+          <strong>Addr: </strong>
+          {this.state.data.address}
+        </div>
+        <div>
+          <strong>Addr2: </strong>
+          {this.state.data.address2}
+        </div>
+        <div>
+          <strong>ZIP: </strong>
+          {this.state.data.zip}
+        </div>
+        <div>
+          <strong>Mobile Number: </strong>
+          {this.state.data.mobile_no}
+        </div>
+        <div>
+          <strong>Alt Mobile No: </strong>
+          {this.state.data.alt_mobile_no}
+        </div>
+        <div>
+          <strong>Date Of Join: </strong>
+          {this.convertDate(this.state.data.dateOfJoin)}
+        </div>
+        <table className="table" style={{ marginTop: 20 }}>
+          <thead>
+            <tr>
+              <th>Sr</th>
+              <th>Plan Name</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Active</th>
+            </tr>
+          </thead>
+          <tbody>{membership}</tbody>
+        </table>
+
+        <table className="table" style={{ marginTop: 20 }}>
+          <thead>
+            <tr>
+              <th>Sr</th>
+              <th>Game</th>
+              <th>Console</th>
+              <th>Serial no</th>
+              <th>Date Issue</th>
+              <th>Date Return</th>
+            </tr>
+          </thead>
+          <tbody>{history}</tbody>
+        </table>
       </div>
     );
   }

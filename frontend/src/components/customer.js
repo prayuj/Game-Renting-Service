@@ -29,7 +29,7 @@ class Customer extends Component {
 
   componentWillReceiveProps(nextProps, nextState) {
     console.log(nextProps.mode.display);
-    if (nextProps.mode.display == "customers")
+    if (nextProps.mode == "customers")
       this.setState({
         display: "customers",
         id: nextProps.id,
@@ -40,7 +40,7 @@ class Customer extends Component {
         membershipEndDate: nextProps.membershipEndDate
       });
 
-    if (nextProps.mode.display == "dashboard")
+    if (nextProps.mode == "dashboard")
       this.setState({
         display: "dashboard",
         id: nextProps.id,

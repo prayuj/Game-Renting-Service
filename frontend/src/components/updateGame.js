@@ -26,13 +26,13 @@ class UpdateGame extends Component {
     this.getGame();
   }
 
-  onSubmit(e, count, items) {
-    console.log(e.target, count, items);
+  onSubmit(e, count, items, old_items) {
+    console.log(e.target, count, items, old_items);
     let temp_items = [];
     for (let i = 0; i < count; i++) {
       if (items[i].new === true) {
         console.log("We are in new block");
-        let index = 4 * i + 2;
+        let index = 4 * i + 2 + old_items.length * 4;
         let serial = e.target[index].value;
         let consol = e.target[index + 1].value;
         let mrp = e.target[index + 2].value;
@@ -50,9 +50,14 @@ class UpdateGame extends Component {
         temp_items.push(items[i]);
       }
     }
+
+    for (let i = 0; i < old_items.length; i++) {
+      temp_items.push(old_items[i]);
+    }
     console.log(temp_items);
 
     const newGame = {
+      _id: this.state.id,
       name: e.target.name.value,
       description: e.target.description.value,
       items: temp_items

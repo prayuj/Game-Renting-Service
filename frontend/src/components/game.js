@@ -42,6 +42,31 @@ class Game extends Component {
 
     this.setRedirect = this.setRedirect.bind(this);
   }
+  componentWillReceiveProps(nextProps, nextState) {
+    console.log(nextProps.mode.display);
+    if (nextProps.mode == "games")
+      this.setState({
+        mode: "games",
+        _id: nextProps._id,
+        sr: nextProps.sr,
+        name: nextProps.name,
+        availableIn: nextProps.availableIn,
+        status: nextProps.status,
+        noAvailable: nextProps.noAvailable,
+        redirect: false
+      });
+
+    if (nextProps.mode == "dashboard")
+      this.setState({
+        display: "dashboard",
+        id: nextProps.id,
+        sr: nextProps.sr,
+        name: nextProps.name,
+        email: nextProps.email,
+        dateOfJoin: nextProps.dateOfJoin
+      });
+  }
+
   setRedirect = () => {
     console.log("Test");
     this.setState({
