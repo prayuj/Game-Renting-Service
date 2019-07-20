@@ -120,9 +120,9 @@ class Customers extends Component {
                 sr={index + 1}
                 name={filter.name}
                 email={filter.email}
-                membershipEndDate={this.convertDate(filter.membership[0].end)}
+                membershipEndDate={this.convertDate(filter.membershipEndDate)}
                 membershipJoinDate={this.convertDate(
-                  filter.membership[0].start
+                  filter.membershipStartDate
                 )}
               />
             ))}

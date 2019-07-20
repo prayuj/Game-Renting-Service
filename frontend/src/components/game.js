@@ -68,15 +68,22 @@ class Game extends Component {
   }
 
   setRedirect = () => {
-    console.log("Test");
-    this.setState({
-      redirect: true
-    });
+    if (this.state.mode === "games")
+      this.setState({
+        redirect_to_game: true
+      });
+    else if (this.state.mode === "issue" || this.state.mode === "return")
+      this.setState({
+        redirect_to_transaction: true
+      });
   };
 
   renderRedirect = () => {
-    if (this.state.redirect) {
+    if (this.state.redirect_to_game) {
       return <Redirect push to={"/game/" + this.state._id} />;
+    }
+    if (this.state.redirect_to_transaction) {
+      return <Redirect push to={"/transaction/" + this.state._id} />;
     }
   };
   render() {

@@ -100,7 +100,7 @@ class Dashboard extends Component {
             {this.state.issue_game.map((game, index) => (
               <Game
                 mode="issue"
-                _id={game.game_id}
+                _id={game._id}
                 sr={index + 1}
                 name={game.gameInfo.name}
                 cust_name={game.customerInfo.name}
@@ -124,7 +124,7 @@ class Dashboard extends Component {
             {this.state.return_game.map((game, index) => (
               <Game
                 mode="return"
-                _id={game.game_id}
+                _id={game._id}
                 sr={index + 1}
                 name={game.gameInfo.name}
                 cust_name={game.customerInfo.name}

@@ -123,7 +123,7 @@ class CustomerForm extends Component {
                 type="text"
                 className="form-control"
                 name="inputZip"
-                defaultValue={this.state.value}
+                defaultValue={this.state.zip}
               />
             </div>
           </div>

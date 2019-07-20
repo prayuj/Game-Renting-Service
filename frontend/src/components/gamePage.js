@@ -68,6 +68,11 @@ class GamePage extends Component {
       this.setState({
         redirect_to_update: true
       });
+
+    if (e.target.value === "Issue")
+      this.setState({
+        redirect_to_issue: true
+      });
     else
       this.setState({
         redirect_to_add_plan: true
@@ -80,6 +85,9 @@ class GamePage extends Component {
     }
     if (this.state.redirect_to_transaction) {
       return <Redirect push to={"/transaction/" + this.state.transaction_id} />;
+    }
+    if (this.state.redirect_to_issue) {
+      return <Redirect push to={"/issue/mode=game&id=" + this.state.id} />;
     }
   };
 
@@ -148,6 +156,12 @@ class GamePage extends Component {
           onClick={this.setRedirect}
           className="btn btn-primary"
           value="Update"
+        />
+        <input
+          type="button"
+          onClick={this.setRedirect}
+          className="btn btn-primary"
+          value="Issue"
         />
         <h3>Name: {this.state.name}</h3>
         <h3>Description: {this.state.description}</h3>

@@ -7,10 +7,23 @@ class AddPlan extends Component {
     this.state = {
       id: props.match.params.id,
       name: "",
-      membership: [{ _id: "", plan: "", start: "", end: "", active: true }],
+      membership: [],
       status: false
     };
     this.handleForm = this.handleForm.bind(this);
+    this.getPlans = this.getPlans.bind(this);
+  }
+
+  componentDidMount() {
+    this.getPlans();
+  }
+
+  getPlans() {
+    axios.get("http://localhost:4000/customer/" + this.state.id).then(res => {
+      this.setState({
+        membership: res.data.membership
+      });
+    });
   }
 
   convertDate(dates) {

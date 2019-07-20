@@ -1,11 +1,15 @@
 import React, { Component } from "react";
 import CustomerForm from "./customerForm";
 import axios from "axios";
+import { Redirect } from "react-router-dom";
 
 class AddCustomer extends Component {
   constructor(props) {
     super(props);
     this.handleForm = this.handleForm.bind(this);
+    this.state = {
+      redirect_to_dashboard: false
+    };
   }
 
   handleForm(e) {
@@ -47,7 +51,7 @@ class AddCustomer extends Component {
       city: e.target.inputCity.value,
       zip: e.target.inputZip.value,
       mobile_no: e.target.mobileNo1.value,
-      alt_mobile_no: e.target.mobileNo1.value,
+      alt_mobile_no: e.target.mobileNo2.value,
       dateOfJoin: today,
       membership: [{ plan: plan, start: today, end: endDate, active: true }]
     };
@@ -57,6 +61,9 @@ class AddCustomer extends Component {
       .post("http://localhost:4000/customer/add", customer)
       .then(res => {
         console.log(res.data);
+        this.setState({
+          redirect_to_dashboard: true
+        });
       })
       .catch(err => {
         console.log(err);
@@ -65,8 +72,19 @@ class AddCustomer extends Component {
         });
       });
   }
+
+  renderRedirect = () => {
+    if (this.state.redirect_to_dashboard) {
+      return <Redirect push to="/" />;
+    }
+  };
   render() {
-    return <CustomerForm mode="add" onSubmit={this.handleForm} />;
+    return (
+      <div>
+        {this.renderRedirect()}
+        <CustomerForm mode="add" onSubmit={this.handleForm} />
+      </div>
+    );
   }
 }
 

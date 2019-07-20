@@ -13,6 +13,9 @@ class Return extends Component {
   componentDidMount() {
     this.getCustomerDetail();
   }
+  componentDidUpdate() {
+    this.getCustomerDetail();
+  }
   getCustomerDetail() {
     axios
       .get("http://localhost:4000/customer/return/" + this.state.id)
@@ -38,8 +41,9 @@ class Return extends Component {
     var mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
     var yyyy = date.getFullYear();
     var today = dd + "/" + mm + "/" + yyyy;
-    console.log(today);
-    return today;
+    var hours = String(date.getHours()).padStart(2, "0");
+    var minutes = String(date.getMinutes()).padStart(2, "0");
+    return today + " (" + hours + ":" + minutes + " hrs)";
   }
 
   handleClick(e) {
@@ -58,23 +62,52 @@ class Return extends Component {
   }
   render() {
     if (this.state.show) {
+      let games = this.state.games_to_return.map((game, index) => (
+        <tr>
+          <td>{index + 1}</td>
+          <td>{game.gameInfo.name}</td>
+          <td>{game.gameInfo.items.console}</td>
+          <td>{game.gameInfo.items.serial_no}</td>
+          <td>{this.convertDate(game.date_issue)}</td>
+          <input
+            type="button"
+            value="Return"
+            className="btn btn-primary"
+            onClick={this.handleClick}
+            id={game._id + " " + game.game_id + " " + game.item_id}
+          />
+        </tr>
+      ));
       return (
-        <div>
-          {this.state.games_to_return.map(game => (
-            <div>
-              <span>{game.gameInfo.name}</span>
-              <span>{game.gameInfo.items.console}</span>
-              <span>{this.convertDate(game.date_issue)}</span>
-              <input
-                type="button"
-                value="Return"
-                className="btn btn-primary"
-                onClick={this.handleClick}
-                id={game._id + " " + game.game_id + " " + game.item_id}
-              />
-            </div>
-          ))}
-        </div>
+        <table className="table" style={{ marginTop: 20 }}>
+          <thead>
+            <tr>
+              <th>Sr</th>
+              <th>Game Name</th>
+              <th>Console</th>
+              <th>Serial No</th>
+              <th>Issued</th>
+              <th>Return</th>
+            </tr>
+          </thead>
+          <tbody>{games}</tbody>
+        </table>
+        // <div>
+        //   {this.state.games_to_return.map(game => (
+        //     <div>
+        //       <span>{game.gameInfo.name}</span>
+        //       <span>{game.gameInfo.items.console}</span>
+        //       <span>{this.convertDate(game.date_issue)}</span>
+        //       <input
+        //         type="button"
+        //         value="Return"
+        //         className="btn btn-primary"
+        //         onClick={this.handleClick}
+        //         id={game._id + " " + game.game_id + " " + game.item_id}
+        //       />
+        //     </div>
+        //   ))}
+        // </div>
       );
     } else return <div>No game to return</div>;
   }

@@ -27,6 +27,9 @@ let Customer = new Schema({
   zip: {
     type: String
   },
+  city: {
+    type: String
+  },
   membership: [
     {
       plan: String,

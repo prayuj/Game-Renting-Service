@@ -18,17 +18,127 @@ app.use("/game", gameRoutes);
 app.use("/transaction", transactionRoutes);
 
 customerRoutes.route("/").get(function(req, res) {
-  Customer.find(
-    { "membership.active": true },
-    { _id: 1, name: 1, email: 1, "membership.$": 1 },
-    (err, customers) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.json(customers);
+  Customer.aggregate([
+    {
+      $unwind: "$membership"
+    },
+    {
+      $match: {
+        "membership.active": true
+      }
+    },
+    {
+      $lookup: {
+        from: "transactions",
+        localField: "_id",
+        foreignField: "customer_id",
+        as: "transactions"
+      }
+    },
+    {
+      $project: {
+        name: 1,
+        membership: 1,
+        email: 1,
+        dateOfJoin: 1,
+        noOfGames: {
+          $size: {
+            $filter: {
+              input: "$transactions",
+              as: "transactions",
+              cond: {
+                $eq: ["$$transactions.return", false]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      $group: {
+        _id: "$_id",
+        plan: {
+          $first: "$membership.plan"
+        },
+        noOfGames: {
+          $first: "$noOfGames"
+        },
+        name: { $first: "$name" },
+        email: { $first: "$email" },
+        dateOfJoin: { $first: "$dateOfJoin" },
+        membershipEndDate: {
+          $first: "$membership.end"
+        },
+        membershipStartDate: {
+          $first: "$membership.start"
+        }
+      }
+    },
+    {
+      $sort: {
+        name: 1
       }
     }
-  );
+  ])
+    .then(docs => res.status(200).json(docs))
+    .catch(err => res.status(500).json(err));
+});
+
+gameRoutes.route("/").get(function(req, res) {
+  Game.aggregate([
+    {
+      $project: {
+        numberAvailable: {
+          $size: {
+            $filter: {
+              input: "$items",
+              as: "item",
+              cond: { $eq: ["$$item.status", "Available"] }
+            }
+          }
+        },
+        numberPS4Available: {
+          $size: {
+            $filter: {
+              input: "$items",
+              as: "item",
+              cond: {
+                $and: [
+                  { $eq: ["$$item.status", "Available"] },
+                  { $eq: ["$$item.console", "PS4"] }
+                ]
+              }
+            }
+          }
+        },
+        numberXBOXAvailable: {
+          $size: {
+            $filter: {
+              input: "$items",
+              as: "item",
+              cond: {
+                $and: [
+                  { $eq: ["$$item.status", "Available"] },
+                  { $eq: ["$$item.console", "XBOX One"] }
+                ]
+              }
+            }
+          }
+        },
+        _id: 1,
+        name: 1,
+        description: 1,
+        items: 1
+      }
+    },
+    {
+      $sort: {
+        name: 1
+      }
+    }
+  ])
+    .then(docu => res.status(200).json(docu))
+    .catch(err => res.status(500).json(err));
 });
 
 customerRoutes.route("/dashboard").get(function(req, res) {
@@ -131,7 +241,38 @@ gameRoutes.route("/dashboard/return").get(function(req, res) {
     .catch(err => res.status(500).json(err));
 });
 
-gameRoutes.route("/").get(function(req, res) {
+customerRoutes.route("/:id").get(function(req, res) {
+  let id = req.params.id;
+  Customer.aggregate([
+    { $match: { _id: mongoose.Types.ObjectId(id) } },
+    { $unwind: "$membership" },
+    {
+      $sort: {
+        "membership.active": -1
+      }
+    },
+    {
+      $group: {
+        _id: "$_id",
+        membership: { $push: "$membership" },
+        dateOfJoin: { $first: "$dateOfJoin" },
+        name: { $first: "$name" },
+        email: { $first: "$email" },
+        address: { $first: "$address" },
+        address2: { $first: "$address2" },
+        mobile_no: { $first: "$mobile_no" },
+        alt_mobile_no: { $first: "$alt_mobile_no" },
+        city: { $first: "$city" },
+        zip: { $first: "$zip" }
+      }
+    }
+  ])
+    .then(docs => res.status(200).json(docs[0]))
+    .catch(err => res.status(400).json(err));
+});
+
+gameRoutes.route("/:id").get(function(req, res) {
+  let id = req.params.id;
   Game.aggregate([
     {
       $project: {
@@ -177,45 +318,15 @@ gameRoutes.route("/").get(function(req, res) {
         description: 1,
         items: 1
       }
-    }
-  ])
-    .then(docu => res.status(200).json(docu))
-    .catch(err => res.status(500).json(err));
-});
-
-gameRoutes.route("/:id").get(function(req, res) {
-  let id = req.params.id;
-  Game.findById(id, "name description items", function(err, game) {
-    res.json(game);
-  });
-});
-
-customerRoutes.route("/:id").get(function(req, res) {
-  let id = req.params.id;
-  Customer.aggregate([
-    { $match: { _id: mongoose.Types.ObjectId(id) } },
-    { $unwind: "$membership" },
-    {
-      $sort: {
-        "membership.active": -1
-      }
     },
     {
-      $group: {
-        _id: "$_id",
-        membership: { $push: "$membership" },
-        dateOfJoin: { $first: "$dateOfJoin" },
-        name: { $first: "$name" },
-        email: { $first: "$email" },
-        address: { $first: "$address" },
-        address2: { $first: "$address2" },
-        mobile_no: { $first: "$mobile_no" },
-        alt_modile_no: { $first: "$alt_modile_no" }
+      $match: {
+        _id: mongoose.Types.ObjectId(id)
       }
     }
   ])
-    .then(docs => res.status(200).json(docs[0]))
-    .catch(err => res.status(400).json(err));
+    .then(docu => res.status(200).json(docu[0]))
+    .catch(err => res.status(500).json(err));
 });
 
 customerRoutes.route("/history/:id").get(function(req, res) {
@@ -226,6 +337,48 @@ customerRoutes.route("/history/:id").get(function(req, res) {
         customer_id: mongoose.Types.ObjectId(id)
       }
     },
+    {
+      $lookup: {
+        from: "games",
+        localField: "game_id",
+        foreignField: "_id",
+        as: "gameInfo"
+      }
+    },
+    { $unwind: "$gameInfo" },
+    { $unwind: "$gameInfo.items" },
+    {
+      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
+    },
+    {
+      $sort: {
+        date_issue: -1
+      }
+    }
+  ])
+    .then(resp => {
+      res.status(200).json(resp);
+    })
+    .catch(err => res.status(500).json(err));
+});
+
+gameRoutes.route("/history/:id").get(function(req, res) {
+  let id = req.params.id;
+  Transaction.aggregate([
+    {
+      $match: {
+        game_id: mongoose.Types.ObjectId(id)
+      }
+    },
+    {
+      $lookup: {
+        from: "customers",
+        localField: "customer_id",
+        foreignField: "_id",
+        as: "customerInfo"
+      }
+    },
+    { $unwind: "$customerInfo" },
     {
       $lookup: {
         from: "games",
@@ -288,48 +441,6 @@ gameRoutes.route("/items/:id").get(function(req, res) {
     .catch(err => res.status(500).json(err));
 });
 
-gameRoutes.route("/history/:id").get(function(req, res) {
-  let id = req.params.id;
-  Transaction.aggregate([
-    {
-      $match: {
-        game_id: mongoose.Types.ObjectId(id)
-      }
-    },
-    {
-      $lookup: {
-        from: "customers",
-        localField: "customer_id",
-        foreignField: "_id",
-        as: "customerInfo"
-      }
-    },
-    { $unwind: "$customerInfo" },
-    {
-      $lookup: {
-        from: "games",
-        localField: "game_id",
-        foreignField: "_id",
-        as: "gameInfo"
-      }
-    },
-    { $unwind: "$gameInfo" },
-    { $unwind: "$gameInfo.items" },
-    {
-      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
-    },
-    {
-      $sort: {
-        date_issue: -1
-      }
-    }
-  ])
-    .then(resp => {
-      res.status(200).json(resp);
-    })
-    .catch(err => res.status(500).json(err));
-});
-
 customerRoutes.route("/issue/:id").get(function(req, res) {
   let id = mongoose.Types.ObjectId(req.params.id);
   console.log(id);
@@ -357,6 +468,7 @@ customerRoutes.route("/issue/:id").get(function(req, res) {
     },
     {
       $project: {
+        name: 1,
         membership: 1,
         noOfGames: {
           $size: {
@@ -379,7 +491,8 @@ customerRoutes.route("/issue/:id").get(function(req, res) {
         },
         noOfGames: {
           $first: "$noOfGames"
-        }
+        },
+        name: { $first: "$name" }
       }
     }
   ]).then(docs => res.status(200).json(docs[0]));
@@ -446,9 +559,18 @@ customerRoutes.route("/issue/:id").post(function(req, res) {
 });
 
 gameRoutes.route("/issue/get").get(function(req, res) {
-  Game.find({ "items.status": "Available" }, "_id name", (err, doc) => {
-    res.status(200).json(doc);
-  });
+  Game.find(
+    { "items.status": "Available" },
+    "_id name",
+    {
+      sort: {
+        name: 1
+      }
+    },
+    (err, doc) => {
+      res.status(200).json(doc);
+    }
+  );
 });
 
 customerRoutes.route("/return/:id").get(function(req, res) {
@@ -552,15 +674,17 @@ gameRoutes.route("/add").post(function(req, res) {
 });
 
 customerRoutes.route("/update/:id").post(function(req, res) {
+  console.log(req.body.city);
   Customer.findById(req.params.id, function(err, cust) {
     if (!cust) res.status(404).send("data is not found");
     else {
-      console.log(req.body);
+      console.log(cust.city);
       cust.name = req.body.name;
       cust.email = req.body.email;
       cust.address = req.body.address;
       cust.address2 = req.body.address2;
       cust.city = req.body.city;
+      console.log(cust.city);
       cust.zip = req.body.zip;
       cust.modile_no = req.body.modile_no;
       cust.alt_modile_no = req.body.alt_modile_no;

@@ -62,7 +62,7 @@ function App() {
       <Route path="/update_customer/:id" component={UpdateCustomer} />
       <Route path="/update_game/:id" component={UpdateGame} />
       <Route path="/add_plan/:id" component={AddPlan} />
-      <Route path="/issue/:id" component={Issue} />
+      <Route path="/issue/mode=:mode&id=:id" component={Issue} />
       <Route path="/return/:id" component={Return} />
     </Router>
   );

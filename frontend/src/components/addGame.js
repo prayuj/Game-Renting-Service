@@ -1,12 +1,14 @@
 import React, { Component } from "react";
 import GameForm from "./gameForm";
 import axios from "axios";
+import { Redirect } from "react-router-dom";
 
 class AddGame extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      redirect_to_dashboard: false,
       game_name: "",
       game_description: "",
       game_properties: [
@@ -89,7 +91,12 @@ class AddGame extends Component {
 
     axios
       .post("http://localhost:4000/game/add", newGame)
-      .then(res => console.log(res.data))
+      .then(res => {
+        console.log(res.data);
+        this.setState({
+          redirect_to_dashboard: true
+        });
+      })
       .catch(err => console.log(err));
 
     this.setState({
@@ -108,10 +115,17 @@ class AddGame extends Component {
     });
   }
 
+  renderRedirect = () => {
+    if (this.state.redirect_to_dashboard) {
+      return <Redirect push to="/" />;
+    }
+  };
+
   render() {
     let status = this.state.status;
     return (
       <div style={{ marginTop: 10 }}>
+        {this.renderRedirect()}
         <h3>Add New Game</h3>
         <GameForm handleForm={this.onSubmit} mode="add" />
       </div>
