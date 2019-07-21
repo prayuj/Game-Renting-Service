@@ -543,7 +543,7 @@ customerRoutes.route("/issue/:id").post(function(req, res) {
                 .then(game => {
                   res
                     .status(200)
-                    .json({ game: "game issued " + transaction._id });
+                    .json({ game: transaction._id });
                 })
                 .catch(err => {
                   res.status(400).json(err);
@@ -829,3 +829,39 @@ connection.once("open", function() {
 app.listen(PORT, function() {
   console.log("Server is running on Port: " + PORT);
 });
+
+function updateMembership() {
+  console.log("Hello");
+  let todayDate = new Date();
+  Customer.aggregate([
+    {
+      $unwind: "$membership"
+    },
+    {
+      $match: {
+        "membership.active": true
+      }
+    }
+  ]).then(docs => {
+    for (let i = 0; i < docs.length; i++) {
+      let end_date = docs[i].membership.end;
+      if (end_date.getTime() < todayDate.getTime()) {
+        console.log(docs[i]);
+        Customer.updateOne(
+          { _id: docs[i]._id, "membership._id": docs[i].membership._id },
+          {
+            $set: {
+              "membership.$.active": false
+            }
+          },
+          (error, res) => {
+            if (error) console.log(error);
+            else console.log(res);
+          }
+        );
+      }
+    }
+  });
+}
+
+setInterval(updateMembership, 5000);

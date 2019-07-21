@@ -11,7 +11,8 @@ class Transaction extends Component {
       id: props.id,
       game_name: props.game_name,
       customer_name: props.customer_name,
-      date_issue: props.date_issue
+      date_issue: props.date_issue,
+      date_return: props.date_return
     };
   }
 
@@ -28,7 +29,8 @@ class Transaction extends Component {
       id: nextProps.id,
       game_name: nextProps.game_name,
       customer_name: nextProps.customer_name,
-      date_issue: nextProps.date_issue
+      date_issue: nextProps.date_issue,
+      date_return: nextProps.date_return
     });
   }
 
@@ -47,6 +49,7 @@ class Transaction extends Component {
         <td>{this.state.customer_name}</td>
         <td>{this.state.game_name}</td>
         <td>{this.state.date_issue}</td>
+        <td>{this.state.date_return}</td>
       </tr>
     );
   }

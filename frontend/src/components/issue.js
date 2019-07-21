@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import axios from "axios";
+import { Redirect } from "react-router-dom";
 
 class Issue extends Component {
   constructor(props) {
@@ -9,21 +10,24 @@ class Issue extends Component {
         mode: "customer",
         customer_id: props.match.params.id,
         show: false,
-        games: []
+        games: [],
+        redirect_to_transaction: false
       };
     else if (props.match.params.mode === "game")
       this.state = {
         mode: "game",
         game_id: props.match.params.id,
         show: false,
-        customers: []
+        customers: [],
+        redirect_to_transaction: false
       };
     else if (props.match.params.mode === "transaction")
       this.state = {
         mode: "transaction",
         customers: [],
         show: false,
-        games: []
+        games: [],
+        redirect_to_transaction: false
       };
     this.handleForm = this.handleForm.bind(this);
   }
@@ -142,12 +146,32 @@ class Issue extends Component {
     axios
       .post("http://localhost:4000/customer/issue/" + customer_id, data)
       .then(res => {
-        alert(res.data.game);
+        if (res.data.game != "Not Available") {
+          alert("Game Issued");
+          this.setState({
+            transactionid: res.data.game
+          });
+          this.setRedirect();
+        } else {
+          alert("Game Not issued");
+        }
       })
       .catch(err => {
         alert(JSON.stringify(err));
       });
   }
+
+  setRedirect = () => {
+    this.setState({
+      redirect_to_transaction: true
+    });
+  };
+
+  renderRedirect = () => {
+    if (this.state.redirect_to_transaction) {
+      return <Redirect push to={"/transaction/" + this.state.transactionid} />;
+    }
+  };
   render() {
     if (this.state.show) {
       let customers;
@@ -192,6 +216,7 @@ class Issue extends Component {
 
       return (
         <div>
+          {this.renderRedirect()}
           <form onSubmit={this.handleForm}>
             <label>Customer Name</label>
             {customers}

@@ -99,6 +99,7 @@ class Transactions extends Component {
               <th>Member Name</th>
               <th>Game Name</th>
               <th>Date Issue</th>
+              <th>Date Return</th>
             </tr>
           </thead>
           <tbody>
@@ -109,6 +110,11 @@ class Transactions extends Component {
                 game_name={transaction.gameInfo.name}
                 customer_name={transaction.customerInfo.name}
                 date_issue={this.convertDate(transaction.date_issue)}
+                date_return={
+                  transaction.return
+                    ? this.convertDate(transaction.date_return)
+                    : "Not Returned"
+                }
               />
             ))}
           </tbody>
