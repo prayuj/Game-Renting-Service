@@ -105,6 +105,7 @@ class GameForm extends Component {
               className="form-control"
               name="name"
               defaultValue={this.state.name}
+              required
             />
           </div>
           <div className="form-group">
@@ -114,6 +115,7 @@ class GameForm extends Component {
               className="form-control"
               name="description"
               defaultValue={this.state.description}
+              required
             />
           </div>
           {this.state.old_items ? (
@@ -179,11 +181,11 @@ class GameForm extends Component {
                   placeholder="Serial No."
                   name="serial"
                   defaultValue={game.serial_no}
+                  required
                 />
               </div>
               <div className="form-group col-md-3">
                 <select className="form-control" name="console">
-                  <option>Choose a console</option>
                   <option selected={game.console === "PS4"}>PS4</option>
                   <option selected={game.console === "XBOX One"}>
                     XBOX One
@@ -197,6 +199,7 @@ class GameForm extends Component {
                   placeholder="Price"
                   name="price"
                   defaultValue={game.mrp}
+                  required
                 />
               </div>
               <div className="form-group">

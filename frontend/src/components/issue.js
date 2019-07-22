@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import axios from "axios";
 import { Redirect } from "react-router-dom";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
 
 class Issue extends Component {
   constructor(props) {
@@ -11,7 +13,10 @@ class Issue extends Component {
         customer_id: props.match.params.id,
         show: false,
         games: [],
-        redirect_to_transaction: false
+        console: [],
+        redirect_to_transaction: false,
+        modal_show: false,
+        button_disable: true
       };
     else if (props.match.params.mode === "game")
       this.state = {
@@ -19,7 +24,10 @@ class Issue extends Component {
         game_id: props.match.params.id,
         show: false,
         customers: [],
-        redirect_to_transaction: false
+        console: [],
+        redirect_to_transaction: false,
+        modal_show: false,
+        button_disable: true
       };
     else if (props.match.params.mode === "transaction")
       this.state = {
@@ -27,9 +35,15 @@ class Issue extends Component {
         customers: [],
         show: false,
         games: [],
-        redirect_to_transaction: false
+        console: [],
+        redirect_to_transaction: false,
+        modal_show: false,
+        button_disable: true
       };
     this.handleForm = this.handleForm.bind(this);
+    this.handleGameChange = this.handleGameChange.bind(this);
+    this.confirmIssue = this.confirmIssue.bind(this);
+    this.modalClose = this.modalClose.bind(this);
   }
   componentDidMount() {
     this.getCustomerDetail();
@@ -81,23 +95,28 @@ class Issue extends Component {
         .then(res => {
           let customers_to_display = [];
           for (let i = 0; i < res.data.length; i++) {
-            if (res.data[i].plan === "1Y4G" && res.data[i].noOfGames < 4) {
-              console.log("4 game plan");
-              customers_to_display.push(res.data[i]);
-            } else if (
-              res.data[i].plan === "6M2G" &&
-              res.data[i].noOfGames < 2
-            ) {
-              console.log("2 game plan");
-              customers_to_display.push(res.data[i]);
-            } else if (
-              res.data[i].plan === "3M1G" &&
-              res.data[i].noOfGames < 1
-            ) {
-              console.log("1 game plan");
-              customers_to_display.push(res.data[i]);
-            } else {
-              console.log("5th condition");
+            if (res.data[i].latestMembership.active) {
+              if (
+                res.data[i].latestMembership.plan === "1Y4G" &&
+                res.data[i].noOfGames < 4
+              ) {
+                console.log("4 game plan");
+                customers_to_display.push(res.data[i]);
+              } else if (
+                res.data[i].latestMembership.plan === "6M2G" &&
+                res.data[i].noOfGames < 2
+              ) {
+                console.log("2 game plan");
+                customers_to_display.push(res.data[i]);
+              } else if (
+                res.data[i].latestMembership.plan === "3M1G" &&
+                res.data[i].noOfGames < 1
+              ) {
+                console.log("1 game plan");
+                customers_to_display.push(res.data[i]);
+              } else {
+                console.log("5th condition");
+              }
             }
           }
           this.setState({
@@ -109,7 +128,7 @@ class Issue extends Component {
   }
   getGames() {
     if (this.state.mode === "customer")
-      axios.get("http://localhost:4000/game/issue/get").then(res => {
+      axios.get("http://localhost:4000/game").then(res => {
         console.log(res.data);
         this.setState({
           games: res.data
@@ -119,6 +138,7 @@ class Issue extends Component {
       axios
         .get("http://localhost:4000/game/" + this.state.game_id)
         .then(res => {
+          console.log(res.data);
           this.setState({
             games: [res.data]
           });
@@ -127,18 +147,60 @@ class Issue extends Component {
               show: true
             });
           }
+          if (
+            res.data.numberPS4Available > 0 &&
+            res.data.numberXBOXAvailable > 0
+          ) {
+            this.setState({
+              console: ["PS4", "XBOX One"]
+            });
+          } else if (res.data.numberPS4Available > 0) {
+            this.setState({
+              console: ["PS4"]
+            });
+          } else if (res.data.numberXBOXAvailable > 0) {
+            this.setState({
+              console: ["XBOX One"]
+            });
+          } else {
+            this.setState({
+              console: []
+            });
+          }
         });
   }
-  handleForm(e) {
+
+  modalClose() {
+    {
+      this.setState({ modal_show: false });
+    }
+  }
+
+  confirmIssue(e) {
     e.preventDefault();
     console.log(
       e.target.game.value,
       e.target.console.value,
       e.target.customer.value
     );
-    let customer_id = e.target.customer.value;
-    let game_id = e.target.game.value;
-    let game_console = e.target.console.value;
+    if (
+      e.target.game.value != "default" &&
+      e.target.console.value != "default" &&
+      e.target.customer.value != "default"
+    )
+      this.setState({
+        modal_show: true,
+        game_id: e.target.game.value,
+        selected_console: e.target.console.value,
+        customer_id: e.target.customer.value,
+        button_disable: false
+      });
+    else this.setState({ modal_show: true });
+  }
+  handleForm() {
+    let customer_id = this.state.customer_id;
+    let game_id = this.state.game_id;
+    let game_console = this.state.selected_console;
     let data = {
       game_id: game_id,
       console: game_console
@@ -147,7 +209,9 @@ class Issue extends Component {
       .post("http://localhost:4000/customer/issue/" + customer_id, data)
       .then(res => {
         if (res.data.game != "Not Available") {
-          alert("Game Issued");
+          this.setState({
+            show: true
+          });
           this.setState({
             transactionid: res.data.game
           });
@@ -159,6 +223,35 @@ class Issue extends Component {
       .catch(err => {
         alert(JSON.stringify(err));
       });
+  }
+
+  handleGameChange(e) {
+    console.log(e.target.value);
+    let games = this.state.games;
+    for (let i = 0; i < games.length; i++) {
+      if (games[i]._id === e.target.value) {
+        if (
+          games[i].numberPS4Available > 0 &&
+          games[i].numberXBOXAvailable > 0
+        ) {
+          this.setState({
+            console: ["PS4", "XBOX One"]
+          });
+        } else if (games[i].numberPS4Available > 0) {
+          this.setState({
+            console: ["PS4"]
+          });
+        } else if (games[i].numberXBOXAvailable > 0) {
+          this.setState({
+            console: ["XBOX One"]
+          });
+        } else {
+          this.setState({
+            console: []
+          });
+        }
+      }
+    }
   }
 
   setRedirect = () => {
@@ -176,7 +269,18 @@ class Issue extends Component {
     if (this.state.show) {
       let customers;
       let games;
-      let console;
+      let console =
+        this.state.console.length == 0 ? (
+          <select className="form-control" name="console" disabled={true}>
+            <option value="default">Not Available</option>
+          </select>
+        ) : (
+          <select className="form-control" name="console">
+            {this.state.console.map(cons => (
+              <option>{cons}</option>
+            ))}
+          </select>
+        );
       if (this.state.mode === "customer") {
         customers = (
           <select className="form-control" name="customer" disabled={true}>
@@ -186,8 +290,12 @@ class Issue extends Component {
           </select>
         );
         games = (
-          <select className="form-control" name="game">
-            <option>Choose a game</option>
+          <select
+            className="form-control"
+            name="game"
+            onChange={this.handleGameChange}
+          >
+            <option value="default">Choose a game</option>
             {this.state.games.map(game => (
               <option value={game._id}>{game.name}</option>
             ))}
@@ -198,7 +306,7 @@ class Issue extends Component {
       if (this.state.mode === "game") {
         customers = (
           <select className="form-control" name="customer">
-            <option>Choose a customer</option>
+            <option value="default">Choose a customer</option>
             {this.state.customers.map(customer => (
               <option value={customer._id}>{customer.name}</option>
             ))}
@@ -217,19 +325,41 @@ class Issue extends Component {
       return (
         <div>
           {this.renderRedirect()}
-          <form onSubmit={this.handleForm}>
+          <form onSubmit={this.confirmIssue}>
             <label>Customer Name</label>
             {customers}
             <label>Game</label>
             {games}
             <label>Console</label>
-            <select className="form-control" name="console">
-              <option>Choose a console</option>
-              <option>PS4</option>
-              <option>XBOX One</option>
-            </select>
-            <input type="submit" value="Check" className="btn btn-primary" />
+            {console}
+            <input type="submit" value="Issue" className="btn btn-primary" />
           </form>
+          <Modal show={this.state.modal_show}>
+            <Modal.Header>
+              <Modal.Title>Game Issue</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+              {this.state.button_disable ? (
+                <p>Fill in Details</p>
+              ) : (
+                <p>Are you sure you want to issue?</p>
+              )}
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button variant="secondary" onClick={this.modalClose}>
+                Close
+              </Button>
+              <Button
+                variant="primary"
+                onClick={this.handleForm}
+                disabled={this.state.button_disable}
+              >
+                Save changes
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </div>
       );
     } else return <div>Can't Issue game</div>;

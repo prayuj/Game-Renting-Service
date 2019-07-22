@@ -7,11 +7,19 @@ class Transactions extends Component {
     super(props);
     this.state = {
       transactions: [],
-      filtered: []
+      filtered: [],
+      ascendingCustomerName: true,
+      ascendingGameName: true,
+      ascendingDateIssue: true,
+      ascendingDateReturn: true,
+      customerNameSortButtonValue: "Sort",
+      gameNameSortButtonValue: "Sort",
+      dateIssueButtonValue: "Sort",
+      dateReturnButtonValue: "Sort"
     };
     this.handleChange = this.handleChange.bind(this);
-
     this.getTransactions = this.getTransactions.bind(this);
+    this.onClickForSort = this.onClickForSort.bind(this);
   }
   componentDidMount() {
     this.getTransactions();
@@ -81,6 +89,197 @@ class Transactions extends Component {
       filtered: newList
     });
   }
+  onClickForSort(e) {
+    console.log(e.target.value);
+    if (e.target.value === "Customer Name") {
+      let transactions = this.state.filtered;
+      transactions.sort((a, b) => {
+        var x = a.customerInfo.name.toLowerCase();
+        var y = b.customerInfo.name.toLowerCase();
+        if (this.state.ascendingCustomerName) {
+          if (x < y) {
+            return 1;
+          }
+          if (x > y) {
+            return -1;
+          }
+          return 0;
+        }
+        if (!this.state.ascendingCustomerName) {
+          if (x < y) {
+            return -1;
+          }
+          if (x > y) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      console.log(transactions);
+      let arrow = this.state.ascendingCustomerName ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        filtered: transactions,
+        ascendingCustomerName: !this.state.ascendingCustomerName,
+        customerNameSortButtonValue: arrow,
+        gameNameSortButtonValue: "Sort",
+        dateIssueButtonValue: "Sort",
+        dateReturnButtonValue: "Sort"
+      });
+    }
+    if (e.target.value === "Game Name") {
+      let transactions = this.state.filtered;
+      transactions.sort((a, b) => {
+        var x = a.gameInfo.name.toLowerCase();
+        var y = b.gameInfo.name.toLowerCase();
+        if (this.state.ascendingGameName) {
+          if (x < y) {
+            return 1;
+          }
+          if (x > y) {
+            return -1;
+          }
+          return 0;
+        }
+        if (!this.state.ascendingGameName) {
+          if (x < y) {
+            return -1;
+          }
+          if (x > y) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      console.log(transactions);
+      let arrow = this.state.ascendingGameName ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        filtered: transactions,
+        ascendingGameName: !this.state.ascendingGameName,
+        gameNameSortButtonValue: arrow,
+        customerNameSortButtonValue: "Sort",
+        dateIssueButtonValue: "Sort",
+        dateReturnButtonValue: "Sort"
+      });
+    }
+    if (e.target.value === "Date Issue") {
+      let transactions = this.state.filtered;
+      transactions.sort((a, b) => {
+        var x = a.date_issue;
+        var y = b.date_issue;
+        if (this.state.ascendingDateIssue) {
+          if (x < y) {
+            return 1;
+          }
+          if (x > y) {
+            return -1;
+          }
+          return 0;
+        }
+        if (!this.state.ascendingDateIssue) {
+          if (x < y) {
+            return -1;
+          }
+          if (x > y) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      let arrow = this.state.ascendingDateIssue ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        filtered: transactions,
+        ascendingDateIssue: !this.state.ascendingDateIssue,
+        dateIssueButtonValue: arrow,
+        customerNameSortButtonValue: "Sort",
+        gameNameSortButtonValue: "Sort",
+        dateReturnButtonValue: "Sort"
+      });
+    }
+    if (e.target.value === "Date Return") {
+      let transactions = this.state.filtered;
+      transactions.sort((a, b) => {
+        if (this.state.ascendingDateReturn) {
+          if (a.return && b.return) {
+            var x = a.date_return;
+            var y = b.date_return;
+            if (x < y) {
+              return 1;
+            }
+            if (x > y) {
+              return -1;
+            }
+            return 0;
+          } else if (!a.return && b.return) {
+            return 1;
+          } else if (a.return && !b.return) {
+            return -1;
+          } else {
+            var x = a.date_issue;
+            var y = b.date_issue;
+            if (x < y) {
+              return 1;
+            }
+            if (x > y) {
+              return -1;
+            }
+            return 0;
+          }
+        }
+        if (!this.state.ascendingDateReturn) {
+          if (a.return && b.return) {
+            var x = a.date_return;
+            var y = b.date_return;
+            if (x < y) {
+              return -1;
+            }
+            if (x > y) {
+              return 1;
+            }
+            return 0;
+          } else if (!a.return && b.return) {
+            return -1;
+          } else if (a.return && !b.return) {
+            return 1;
+          } else {
+            var x = a.date_issue;
+            var y = b.date_issue;
+            if (x < y) {
+              return -1;
+            }
+            if (x > y) {
+              return 1;
+            }
+            return 0;
+          }
+        }
+      });
+      let arrow = this.state.ascendingDateReturn ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        filtered: transactions,
+        ascendingDateReturn: !this.state.ascendingDateReturn,
+        dateReturnButtonValue: arrow,
+        customerNameSortButtonValue: "Sort",
+        gameNameSortButtonValue: "Sort",
+        gameNameSortButtonValue: "Sort"
+      });
+    }
+  }
 
   render() {
     return (
@@ -96,10 +295,50 @@ class Transactions extends Component {
             <tr>
               <th>Sr</th>
               <th>Transaction ID</th>
-              <th>Member Name</th>
-              <th>Game Name</th>
-              <th>Date Issue</th>
-              <th>Date Return</th>
+              <th>
+                Member Name{" "}
+                <button
+                  className="btn btn-primary"
+                  value="Customer Name"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.customerNameSortButtonValue}
+                </button>
+              </th>
+              <th>
+                Game Name{" "}
+                <button
+                  className="btn btn-primary"
+                  value="Game Name"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.gameNameSortButtonValue}
+                </button>
+              </th>
+              <th>
+                Date Issue{" "}
+                <button
+                  className="btn btn-primary"
+                  value="Date Issue"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.dateIssueButtonValue}
+                </button>
+              </th>
+              <th>
+                Date Return
+                <button
+                  className="btn btn-primary"
+                  value="Date Return"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.dateReturnButtonValue}
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>

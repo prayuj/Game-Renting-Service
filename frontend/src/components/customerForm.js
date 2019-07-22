@@ -50,7 +50,9 @@ class CustomerForm extends Component {
     const plan = this.state.show ? (
       <div className="form-group">
         <select className="form-control" name="plan">
-          <option>Choose a plan</option>
+          <option value="" selected disabled hidden>
+            Choose a plan
+          </option>
           <option>3 months, 1 game/month</option>
           <option>6 months, 2 games/month</option>
           <option>1 year, 4 games/month</option>
@@ -71,6 +73,7 @@ class CustomerForm extends Component {
                 id="inputEmail4"
                 placeholder="Name"
                 defaultValue={this.state.name}
+                required
               />
             </div>
             <div className="form-group col-md-5">
@@ -82,6 +85,7 @@ class CustomerForm extends Component {
                 id="inputPassword4"
                 placeholder="Email"
                 defaultValue={this.state.email}
+                required
               />
             </div>
           </div>

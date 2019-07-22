@@ -7,6 +7,7 @@ class Modals extends Component {
     super(props);
     this.state = {
       title: props.title,
+      body: props.body,
       show: props.show
     };
   }
@@ -20,7 +21,7 @@ class Modals extends Component {
           </Modal.Header>
 
           <Modal.Body>
-            <p>Modal body text goes here.</p>
+            <p>{this.state.body}</p>
           </Modal.Body>
 
           <Modal.Footer>

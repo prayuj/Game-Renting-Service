@@ -9,10 +9,17 @@ class Customers extends Component {
     this.state = {
       customers: [],
       search: "",
-      filtered: []
+      filtered: [],
+      ascendingName: true,
+      ascendingDOJ: true,
+      ascendingMembershipEnd: true,
+      nameSortButtonValue: "Sort",
+      DOJSortButtonValue: "Sort",
+      membershipEndSortButtonValue: "Sort"
     };
     this.getCustomers = this.getCustomers.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.onClickForSort = this.onClickForSort.bind(this);
   }
 
   componentDidMount() {
@@ -85,6 +92,124 @@ class Customers extends Component {
     });
   }
 
+  onClickForSort(e) {
+    console.log(e.target.value);
+    if (e.target.value === "Name") {
+      let customers = this.state.filtered;
+      customers.sort((a, b) => {
+        var x = a.name.toLowerCase();
+        var y = b.name.toLowerCase();
+        if (this.state.ascendingName) {
+          if (x < y) {
+            return 1;
+          }
+          if (x > y) {
+            return -1;
+          }
+          return 0;
+        }
+        if (!this.state.ascendingName) {
+          if (x < y) {
+            return -1;
+          }
+          if (x > y) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      console.log(customers);
+      let arrow = this.state.ascendingName ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        filtered: customers,
+        ascendingName: !this.state.ascendingName,
+        nameSortButtonValue: arrow,
+        DOJSortButtonValue: "Sort",
+        membershipEndSortButtonValue: "Sort"
+      });
+    }
+    if (e.target.value === "DOJ") {
+      let customers = this.state.filtered;
+      customers.sort((a, b) => {
+        var x = a.dateOfJoin;
+        var y = b.dateOfJoin;
+        if (this.state.ascendingDOJ) {
+          if (x < y) {
+            return 1;
+          }
+          if (x > y) {
+            return -1;
+          }
+          return 0;
+        }
+        if (!this.state.ascendingDOJ) {
+          if (x < y) {
+            return -1;
+          }
+          if (x > y) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      console.log(customers);
+      let arrow = this.state.ascendingDOJ ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        filtered: customers,
+        ascendingDOJ: !this.state.ascendingDOJ,
+        DOJSortButtonValue: arrow,
+        nameSortButtonValue: "Sort",
+        membershipEndSortButtonValue: "Sort"
+      });
+    }
+    if (e.target.value === "Membership") {
+      let customers = this.state.filtered;
+      customers.sort((a, b) => {
+        var x = a.latestMembership.end;
+        var y = b.latestMembership.end;
+        if (this.state.ascendingMembershipEnd) {
+          if (x < y) {
+            return 1;
+          }
+          if (x > y) {
+            return -1;
+          }
+          return 0;
+        }
+        if (!this.state.ascendingMembershipEnd) {
+          if (x < y) {
+            return -1;
+          }
+          if (x > y) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      console.log(customers);
+      let arrow = this.state.ascendingMembershipEnd ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        filtered: customers,
+        ascendingMembershipEnd: !this.state.ascendingMembershipEnd,
+        membershipEndSortButtonValue: arrow,
+        nameSortButtonValue: "Sort",
+        DOJSortButtonValue: "Sort"
+      });
+    }
+  }
+
   render() {
     console.log(this.state.filtered);
     return (
@@ -106,10 +231,40 @@ class Customers extends Component {
           <thead>
             <tr>
               <th>Sr</th>
-              <th>Name</th>
+              <th>
+                Name
+                <button
+                  className="btn btn-primary"
+                  value="Name"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.nameSortButtonValue}
+                </button>
+              </th>
               <th>Email-ID</th>
-              <th>Membership start</th>
-              <th>Membership end</th>
+              <th>
+                Date Of Joining
+                <button
+                  className="btn btn-primary"
+                  value="DOJ"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.DOJSortButtonValue}
+                </button>
+              </th>
+              <th>
+                Membership Expiry
+                <button
+                  className="btn btn-primary"
+                  value="Membership"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.membershipEndSortButtonValue}
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -120,10 +275,12 @@ class Customers extends Component {
                 sr={index + 1}
                 name={filter.name}
                 email={filter.email}
-                membershipEndDate={this.convertDate(filter.membershipEndDate)}
-                membershipJoinDate={this.convertDate(
-                  filter.membershipStartDate
-                )}
+                dateOfJoin={this.convertDate(filter.dateOfJoin)}
+                dateOfMembershipEnd={
+                  filter.latestMembership.active
+                    ? this.convertDate(filter.latestMembership.end)
+                    : "Expired Membership"
+                }
               />
             ))}
           </tbody>

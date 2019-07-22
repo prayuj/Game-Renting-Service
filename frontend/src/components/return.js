@@ -1,20 +1,39 @@
 import React, { Component } from "react";
 import axios from "axios";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
 
 class Return extends Component {
   constructor(props) {
     super(props);
     this.state = {
       id: props.match.params.id,
-      show: false
+      show: false,
+      modal_show: false
     };
     this.handleClick = this.handleClick.bind(this);
+    this.confirmReturn = this.confirmReturn.bind(this);
+    this.modalClose = this.modalClose.bind(this);
   }
   componentDidMount() {
     this.getCustomerDetail();
   }
   componentDidUpdate() {
     this.getCustomerDetail();
+  }
+  confirmReturn(e) {
+    console.log(e.target.id);
+    let ids = e.target.id.split(" ");
+    this.setState({
+      modal_show: true,
+      ids: ids
+    });
+  }
+
+  modalClose() {
+    {
+      this.setState({ modal_show: false });
+    }
   }
   getCustomerDetail() {
     axios
@@ -46,9 +65,8 @@ class Return extends Component {
     return today + " (" + hours + ":" + minutes + " hrs)";
   }
 
-  handleClick(e) {
-    console.log(e.target.id);
-    let id = e.target.id.split(" ");
+  handleClick() {
+    let id = this.state.ids;
     axios
       .post("http://localhost:4000/customer/return/" + this.state.id, {
         transaction_id: id[0],
@@ -73,7 +91,7 @@ class Return extends Component {
             type="button"
             value="Return"
             className="btn btn-primary"
-            onClick={this.handleClick}
+            onClick={this.confirmReturn}
             id={game._id + " " + game.game_id + " " + game.item_id}
           />
         </tr>
@@ -91,23 +109,25 @@ class Return extends Component {
             </tr>
           </thead>
           <tbody>{games}</tbody>
+          <Modal show={this.state.modal_show}>
+            <Modal.Header>
+              <Modal.Title>Game Return</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+              <p>Are you sure you want to Return?</p>
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button variant="secondary" onClick={this.modalClose}>
+                Close
+              </Button>
+              <Button variant="primary" onClick={this.handleClick}>
+                Save changes
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </table>
-        // <div>
-        //   {this.state.games_to_return.map(game => (
-        //     <div>
-        //       <span>{game.gameInfo.name}</span>
-        //       <span>{game.gameInfo.items.console}</span>
-        //       <span>{this.convertDate(game.date_issue)}</span>
-        //       <input
-        //         type="button"
-        //         value="Return"
-        //         className="btn btn-primary"
-        //         onClick={this.handleClick}
-        //         id={game._id + " " + game.game_id + " " + game.item_id}
-        //       />
-        //     </div>
-        //   ))}
-        // </div>
       );
     } else return <div>No game to return</div>;
   }

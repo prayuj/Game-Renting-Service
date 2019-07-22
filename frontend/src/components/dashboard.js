@@ -62,8 +62,8 @@ class Dashboard extends Component {
     return (
       <div>
         <div>
-          Recently Added Customers
-          <table className="table" style={{ marginTop: 20 }}>
+          <h3>Recently Added Customers</h3>
+          <table className="table" style={{ marginTop: 20, padding: "2px" }}>
             <thead>
               <tr>
                 <th>Sr</th>
@@ -86,7 +86,9 @@ class Dashboard extends Component {
             </tbody>
           </table>
         </div>
-        <div>Recently Issued Games</div>
+        <hr />
+        <br />
+        <h3>Recently Issued Games</h3>
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
             <tr>
@@ -109,7 +111,10 @@ class Dashboard extends Component {
             ))}
           </tbody>
         </table>
-        <div>Recently Returned Games</div>
+
+        <hr />
+        <br />
+        <h3>Recently Returned Games</h3>
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
             <tr>

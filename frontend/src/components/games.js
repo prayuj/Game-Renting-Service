@@ -8,9 +8,14 @@ class Games extends Component {
     super(props);
     this.state = {
       games: [],
-      filtered: []
+      filtered: [],
+      ascendingName: true,
+      ascendingAvailable: true,
+      nameSortButtonValue: "Sort",
+      availableSortButtonValue: "Sort"
     };
     this.handleChange = this.handleChange.bind(this);
+    this.onClickForSort = this.onClickForSort.bind(this);
   }
 
   componentDidMount() {
@@ -73,6 +78,85 @@ class Games extends Component {
       filtered: newList
     });
   }
+
+  onClickForSort(e) {
+    console.log(e.target.value);
+    if (e.target.value === "Name") {
+      let games = this.state.games;
+      games.sort((a, b) => {
+        var x = a.name.toLowerCase();
+        var y = b.name.toLowerCase();
+        if (this.state.ascendingName) {
+          if (x < y) {
+            return 1;
+          }
+          if (x > y) {
+            return -1;
+          }
+          return 0;
+        }
+        if (!this.state.ascendingName) {
+          if (x < y) {
+            return -1;
+          }
+          if (x > y) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      console.log(games);
+      let arrow = this.state.ascendingName ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        games: games,
+        ascendingName: !this.state.ascendingName,
+        nameSortButtonValue: arrow,
+        availableSortButtonValue: "Sort"
+      });
+    }
+    if (e.target.value === "Available") {
+      let games = this.state.games;
+      games.sort((a, b) => {
+        var x = a.numberAvailable;
+        var y = b.numberAvailable;
+        if (this.state.ascendingAvailable) {
+          if (x < y) {
+            return 1;
+          }
+          if (x > y) {
+            return -1;
+          }
+          return 0;
+        }
+        if (!this.state.ascendingAvailable) {
+          if (x < y) {
+            return -1;
+          }
+          if (x > y) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      console.log(games);
+      let arrow = this.state.ascendingAvailable ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        games: games,
+        ascendingAvailable: !this.state.ascendingAvailable,
+        availableSortButtonValue: arrow,
+        nameSortButtonValue: "Sort"
+      });
+    }
+  }
+
   render() {
     return (
       <div>
@@ -93,9 +177,29 @@ class Games extends Component {
           <thead>
             <tr>
               <th>Id</th>
-              <th>Name</th>
+              <th>
+                Name
+                <button
+                  className="btn btn-primary"
+                  value="Name"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.nameSortButtonValue}
+                </button>
+              </th>
               <th>Available In</th>
-              <th>Number Available</th>
+              <th>
+                Number Available{" "}
+                <button
+                  className="btn btn-primary"
+                  value="Available"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.availableSortButtonValue}
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>

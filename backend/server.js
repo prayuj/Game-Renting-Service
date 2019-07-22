@@ -23,11 +23,6 @@ customerRoutes.route("/").get(function(req, res) {
       $unwind: "$membership"
     },
     {
-      $match: {
-        "membership.active": true
-      }
-    },
-    {
       $lookup: {
         from: "transactions",
         localField: "_id",
@@ -57,22 +52,58 @@ customerRoutes.route("/").get(function(req, res) {
     {
       $group: {
         _id: "$_id",
-        plan: {
-          $first: "$membership.plan"
-        },
         noOfGames: {
           $first: "$noOfGames"
         },
         name: { $first: "$name" },
         email: { $first: "$email" },
         dateOfJoin: { $first: "$dateOfJoin" },
-        membershipEndDate: {
-          $first: "$membership.end"
+        maxStart: {
+          $max: "$membership.start"
         },
-        membershipStartDate: {
-          $first: "$membership.start"
+        noOfGames: { $first: "$noOfGames" },
+        membership: {
+          $push: {
+            _id: "$membership._id",
+            plan: "$membership.plan",
+            start: "$membership.start",
+            end: "$membership.end",
+            active: "$membership.active"
+          }
         }
       }
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        dateOfJoin: 1,
+        noOfGames: 1,
+        latestMembership: {
+          $setDifference: [
+            {
+              $map: {
+                input: "$membership",
+                as: "membership",
+                in: {
+                  $cond: [
+                    {
+                      $eq: ["$maxStart", "$$membership.start"]
+                    },
+                    "$$membership",
+                    false
+                  ]
+                }
+              }
+            },
+            [false]
+          ]
+        }
+      }
+    },
+    {
+      $unwind: "$latestMembership"
     },
     {
       $sort: {
@@ -541,9 +572,7 @@ customerRoutes.route("/issue/:id").post(function(req, res) {
               transaction
                 .save()
                 .then(game => {
-                  res
-                    .status(200)
-                    .json({ game: transaction._id });
+                  res.status(200).json({ game: transaction._id });
                 })
                 .catch(err => {
                   res.status(400).json(err);

@@ -12,8 +12,8 @@ class Customer extends Component {
         sr: props.sr,
         name: props.name,
         email: props.email,
-        membershipJoinDate: props.membershipJoinDate,
-        membershipEndDate: props.membershipEndDate
+        dateOfJoin: props.dateOfJoin,
+        dateOfMembershipEnd: props.dateOfMembershipEnd
       };
     if (props.mode == "dashboard")
       this.state = {
@@ -28,7 +28,6 @@ class Customer extends Component {
   }
 
   componentWillReceiveProps(nextProps, nextState) {
-    console.log(nextProps.mode.display);
     if (nextProps.mode == "customers")
       this.setState({
         display: "customers",
@@ -36,8 +35,8 @@ class Customer extends Component {
         sr: nextProps.sr,
         name: nextProps.name,
         email: nextProps.email,
-        membershipJoinDate: nextProps.membershipJoinDate,
-        membershipEndDate: nextProps.membershipEndDate
+        dateOfJoin: nextProps.dateOfJoin,
+        dateOfMembershipEnd: nextProps.dateOfMembershipEnd
       });
 
     if (nextProps.mode == "dashboard")
@@ -70,8 +69,8 @@ class Customer extends Component {
           <td>{this.state.sr}</td>
           <td>{this.state.name}</td>
           <td>{this.state.email}</td>
-          <td>{this.state.membershipJoinDate}</td>
-          <td>{this.state.membershipEndDate}</td>
+          <td>{this.state.dateOfJoin}</td>
+          <td>{this.state.dateOfMembershipEnd}</td>
         </tr>
       );
     if (this.state.display === "dashboard")
