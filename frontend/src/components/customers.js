@@ -13,9 +13,11 @@ class Customers extends Component {
       ascendingName: true,
       ascendingDOJ: true,
       ascendingMembershipEnd: true,
+      ascendingNoOfGames: true,
       nameSortButtonValue: "Sort",
       DOJSortButtonValue: "Sort",
-      membershipEndSortButtonValue: "Sort"
+      membershipEndSortButtonValue: "Sort",
+      noOfGamesSortButtonValue: "Sort"
     };
     this.getCustomers = this.getCustomers.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -129,7 +131,8 @@ class Customers extends Component {
         ascendingName: !this.state.ascendingName,
         nameSortButtonValue: arrow,
         DOJSortButtonValue: "Sort",
-        membershipEndSortButtonValue: "Sort"
+        membershipEndSortButtonValue: "Sort",
+        noOfGamesSortButtonValue: "Sort"
       });
     }
     if (e.target.value === "DOJ") {
@@ -167,7 +170,8 @@ class Customers extends Component {
         ascendingDOJ: !this.state.ascendingDOJ,
         DOJSortButtonValue: arrow,
         nameSortButtonValue: "Sort",
-        membershipEndSortButtonValue: "Sort"
+        membershipEndSortButtonValue: "Sort",
+        noOfGamesSortButtonValue: "Sort"
       });
     }
     if (e.target.value === "Membership") {
@@ -205,7 +209,47 @@ class Customers extends Component {
         ascendingMembershipEnd: !this.state.ascendingMembershipEnd,
         membershipEndSortButtonValue: arrow,
         nameSortButtonValue: "Sort",
-        DOJSortButtonValue: "Sort"
+        DOJSortButtonValue: "Sort",
+        noOfGamesSortButtonValue: "Sort"
+      });
+    }
+    if (e.target.value === "No Of Games") {
+      let customers = this.state.filtered;
+      customers.sort((a, b) => {
+        var x = a.noOfGames;
+        var y = b.noOfGames;
+        if (this.state.ascendingNoOfGames) {
+          if (x < y) {
+            return 1;
+          }
+          if (x > y) {
+            return -1;
+          }
+          return 0;
+        }
+        if (!this.state.ascendingNoOfGames) {
+          if (x < y) {
+            return -1;
+          }
+          if (x > y) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      console.log(customers);
+      let arrow = this.state.ascendingNoOfGames ? (
+        <span>&darr;</span>
+      ) : (
+        <span>&uarr;</span>
+      );
+      this.setState({
+        filtered: customers,
+        ascendingNoOfGames: !this.state.ascendingNoOfGames,
+        noOfGamesSortButtonValue: arrow,
+        nameSortButtonValue: "Sort",
+        DOJSortButtonValue: "Sort",
+        membershipEndSortButtonValue: "Sort"
       });
     }
   }
@@ -265,6 +309,18 @@ class Customers extends Component {
                   {this.state.membershipEndSortButtonValue}
                 </button>
               </th>
+
+              <th>
+                NoOfGames
+                <button
+                  className="btn btn-primary"
+                  value="No Of Games"
+                  onClick={this.onClickForSort}
+                  style={{ "margin-left": "5%" }}
+                >
+                  {this.state.noOfGamesSortButtonValue}
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -275,6 +331,7 @@ class Customers extends Component {
                 sr={index + 1}
                 name={filter.name}
                 email={filter.email}
+                noOfGames={filter.noOfGames}
                 dateOfJoin={this.convertDate(filter.dateOfJoin)}
                 dateOfMembershipEnd={
                   filter.latestMembership.active

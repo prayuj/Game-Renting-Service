@@ -12,6 +12,7 @@ class Customer extends Component {
         sr: props.sr,
         name: props.name,
         email: props.email,
+        noOfGames: props.noOfGames,
         dateOfJoin: props.dateOfJoin,
         dateOfMembershipEnd: props.dateOfMembershipEnd
       };
@@ -35,6 +36,7 @@ class Customer extends Component {
         sr: nextProps.sr,
         name: nextProps.name,
         email: nextProps.email,
+        noOfGames: nextProps.noOfGames,
         dateOfJoin: nextProps.dateOfJoin,
         dateOfMembershipEnd: nextProps.dateOfMembershipEnd
       });
@@ -71,6 +73,8 @@ class Customer extends Component {
           <td>{this.state.email}</td>
           <td>{this.state.dateOfJoin}</td>
           <td>{this.state.dateOfMembershipEnd}</td>
+
+          <td>{this.state.noOfGames}</td>
         </tr>
       );
     if (this.state.display === "dashboard")

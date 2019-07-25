@@ -29,11 +29,11 @@ class Issue extends Component {
         modal_show: false,
         button_disable: true
       };
-    else if (props.match.params.mode === "transaction")
+    else if (props.match.params.mode === "dashboard")
       this.state = {
-        mode: "transaction",
+        mode: "dashboard",
         customers: [],
-        show: false,
+        show: true,
         games: [],
         console: [],
         redirect_to_transaction: false,
@@ -89,7 +89,7 @@ class Issue extends Component {
           });
         })
         .catch(err => console.log(err));
-    } else if (this.state.mode === "game") {
+    } else {
       axios
         .get("http://localhost:4000/customer")
         .then(res => {
@@ -127,14 +127,7 @@ class Issue extends Component {
     }
   }
   getGames() {
-    if (this.state.mode === "customer")
-      axios.get("http://localhost:4000/game").then(res => {
-        console.log(res.data);
-        this.setState({
-          games: res.data
-        });
-      });
-    else if (this.state.mode === "game")
+    if (this.state.mode === "game")
       axios
         .get("http://localhost:4000/game/" + this.state.game_id)
         .then(res => {
@@ -168,6 +161,13 @@ class Issue extends Component {
             });
           }
         });
+    else
+      axios.get("http://localhost:4000/game").then(res => {
+        console.log(res.data);
+        this.setState({
+          games: res.data
+        });
+      });
   }
 
   modalClose() {
@@ -315,6 +315,30 @@ class Issue extends Component {
 
         games = (
           <select className="form-control" name="game" disabled={true}>
+            {this.state.games.map(game => (
+              <option value={game._id}>{game.name}</option>
+            ))}
+          </select>
+        );
+      }
+
+      if (this.state.mode === "dashboard") {
+        customers = (
+          <select className="form-control" name="customer">
+            <option value="default">Choose a customer</option>
+            {this.state.customers.map(customer => (
+              <option value={customer._id}>{customer.name}</option>
+            ))}
+          </select>
+        );
+
+        games = (
+          <select
+            className="form-control"
+            name="game"
+            onChange={this.handleGameChange}
+          >
+            <option value="default">Choose a game</option>
             {this.state.games.map(game => (
               <option value={game._id}>{game.name}</option>
             ))}

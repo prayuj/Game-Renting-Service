@@ -78,7 +78,7 @@ class CustomerPage extends Component {
       return <Redirect push to={"/issue/mode=customer&id=" + this.state.id} />;
     }
     if (this.state.redirect_to_return) {
-      return <Redirect push to={"/return/" + this.state.id} />;
+      return <Redirect push to={"/return/mode=customer&id=" + this.state.id} />;
     }
     if (this.state.redirect_to_transaction) {
       return <Redirect push to={"/transaction/" + this.state.transaction_id} />;

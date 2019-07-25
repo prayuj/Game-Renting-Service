@@ -602,6 +602,43 @@ gameRoutes.route("/issue/get").get(function(req, res) {
   );
 });
 
+customerRoutes.route("/return/all").get(function(req, res) {
+  let id = req.params.id;
+  Transaction.aggregate([
+    {
+      $match: {
+        return: false
+      }
+    },
+    {
+      $lookup: {
+        from: "games",
+        localField: "game_id",
+        foreignField: "_id",
+        as: "gameInfo"
+      }
+    },
+    {
+      $lookup: {
+        from: "customers",
+        localField: "customer_id",
+        foreignField: "_id",
+        as: "customerInfo"
+      }
+    },
+    { $unwind: "$gameInfo" },
+    { $unwind: "$customerInfo" },
+    { $unwind: "$gameInfo.items" },
+    {
+      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
+    }
+  ])
+    .then(resp => {
+      res.status(200).json(resp);
+    })
+    .catch(err => res.status(500).json(err));
+});
+
 customerRoutes.route("/return/:id").get(function(req, res) {
   let id = req.params.id;
   Transaction.aggregate([
