@@ -9,7 +9,7 @@ class GameForm extends Component {
       items: [
         {
           console: "Choose a console",
-          _id: 1,
+          _id: 0,
           serial_no: "",
           mrp: "",
           description: "",
@@ -17,12 +17,16 @@ class GameForm extends Component {
         }
       ],
       old_items: [],
+      id_count: 0,
       count: 1
     };
     this.onAdd = this.onAdd.bind(this);
     this.onDelete = this.onDelete.bind(this);
     this.handleForm = this.handleForm.bind(this);
     this.onChangeOfAvailableButton = this.onChangeOfAvailableButton.bind(this);
+    this.nameChange = this.nameChange.bind(this);
+    this.descriptionChange = this.descriptionChange.bind(this);
+    this.itemsChange = this.itemsChange.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -40,8 +44,8 @@ class GameForm extends Component {
   onAdd() {
     let items = this.state.items;
     items.push({
-      _id: this.state.count + 1,
-      serial: "",
+      _id: this.state.id_count + 1,
+      serial_no: "",
       console: "",
       mrp: "",
       new: true,
@@ -50,6 +54,7 @@ class GameForm extends Component {
     console.log(items);
     this.setState({
       items: items,
+      id_count: this.state.id_count + 1,
       count: this.state.count + 1
     });
   }
@@ -94,6 +99,39 @@ class GameForm extends Component {
       this.state.old_items
     );
   }
+
+  nameChange(e) {
+    console.log(e.target.value);
+    this.setState({
+      name: e.target.value
+    });
+  }
+
+  descriptionChange(e) {
+    this.setState({
+      description: e.target.value
+    });
+  }
+
+  itemsChange(e) {
+    console.log(e.target.name, e.target.value, e.target.id);
+    let items = this.state.items;
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i];
+      if (item._id === parseInt(e.target.id)) {
+        if (e.target.name === "serial") {
+          item.serial_no = e.target.value;
+        } else if (e.target.name === "console") {
+          item.console = e.target.value;
+        } else {
+          item.mrp = e.target.value;
+        }
+      }
+    }
+    this.setState({
+      items: items
+    });
+  }
   render() {
     return (
       <div style={{ marginTop: 10 }}>
@@ -104,8 +142,9 @@ class GameForm extends Component {
               type="text"
               className="form-control"
               name="name"
-              defaultValue={this.state.name}
+              value={this.state.name}
               required
+              onChange={this.nameChange}
             />
           </div>
           <div className="form-group">
@@ -114,8 +153,9 @@ class GameForm extends Component {
               type="text"
               className="form-control"
               name="description"
-              defaultValue={this.state.description}
+              value={this.state.description}
               required
+              onChange={this.descriptionChange}
             />
           </div>
           {this.state.old_items ? (
@@ -123,17 +163,19 @@ class GameForm extends Component {
               <div className="form-row">
                 <div className="form-group col-md-6">
                   <input
+                    id={game._id}
                     type="text"
                     className="form-control"
                     placeholder="Serial No."
                     name="serial"
                     disabled={true}
-                    defaultValue={game.serial_no}
+                    value={game.serial_no}
                   />
                 </div>
                 <div className="form-group col-md-3">
                   <select
                     className="form-control"
+                    id={game._id}
                     name="console"
                     disabled={true}
                   >
@@ -150,8 +192,9 @@ class GameForm extends Component {
                     className="form-control"
                     placeholder="Price"
                     name="price"
+                    id={game._id}
                     disabled={true}
-                    defaultValue={game.mrp}
+                    value={game.mrp}
                   />
                 </div>
                 <div className="form-group">
@@ -173,19 +216,20 @@ class GameForm extends Component {
             <div />
           )}
           {this.state.items.map(game => (
-            <div className="form-row">
+            <div className="form-row" onChange={this.itemsChange}>
               <div className="form-group col-md-6">
                 <input
                   type="text"
+                  id={game._id}
                   className="form-control"
                   placeholder="Serial No."
                   name="serial"
-                  defaultValue={game.serial_no}
+                  value={game.serial_no}
                   required
                 />
               </div>
               <div className="form-group col-md-3">
-                <select className="form-control" name="console">
+                <select className="form-control" name="console" id={game._id}>
                   <option selected={game.console === "PS4"}>PS4</option>
                   <option selected={game.console === "XBOX One"}>
                     XBOX One
@@ -195,10 +239,11 @@ class GameForm extends Component {
               <div className="form-group col-md-1 ">
                 <input
                   type="text"
+                  id={game._id}
                   className="form-control"
                   placeholder="Price"
                   name="price"
-                  defaultValue={game.mrp}
+                  value={game.mrp}
                   required
                 />
               </div>

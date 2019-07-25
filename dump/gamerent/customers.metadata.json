@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":2,"key":{"_id":1},"name":"_id_","ns":"gamerent.customers"},{"v":2,"key":{"_fts":"text","_ftsx":1},"name":"name_text","ns":"gamerent.customers","background":true,"weights":{"name":1},"default_language":"english","language_override":"language","textIndexVersion":3}],"uuid":"6f1b4706f5d24d58b98b0ee6c751e68f"}
