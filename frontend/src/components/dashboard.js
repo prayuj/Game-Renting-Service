@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import "react-dates/initialize";
+import "react-dates/lib/css/_datepicker.css";
 import axios from "axios";
 import Customer from "./customer";
 import Game from "./game";
@@ -58,36 +60,18 @@ class Dashboard extends Component {
     console.log(today);
     return today;
   }
+
+  getToday() {
+    var date = new Date();
+    var dd = String(date.getDate()).padStart(2, "0");
+    var mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
+    var yyyy = date.getFullYear();
+    console.log(yyyy + "-" + mm + "-" + dd);
+    return yyyy + "-" + mm + "-" + dd;
+  }
   render() {
     return (
       <div>
-        <div>
-          <h3>Recently Added Customers</h3>
-          <table className="table" style={{ marginTop: 20, padding: "2px" }}>
-            <thead>
-              <tr>
-                <th>Sr</th>
-                <th>Name</th>
-                <th>Email-ID</th>
-                <th>Date Of Join</th>
-              </tr>
-            </thead>
-            <tbody>
-              {this.state.customers.map((customer, index) => (
-                <Customer
-                  mode="dashboard"
-                  id={customer._id}
-                  sr={index + 1}
-                  name={customer.name}
-                  email={customer.email}
-                  dateOfJoin={this.convertDate(customer.dateOfJoin)}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <hr />
-        <br />
         <h3>Recently Issued Games</h3>
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
@@ -111,7 +95,6 @@ class Dashboard extends Component {
             ))}
           </tbody>
         </table>
-
         <hr />
         <br />
         <h3>Recently Returned Games</h3>
@@ -139,6 +122,33 @@ class Dashboard extends Component {
             ))}
           </tbody>
         </table>
+        <hr />
+        <br />
+        <div>
+          <h3>Recently Added Customers</h3>
+          <table className="table" style={{ marginTop: 20, padding: "2px" }}>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Name</th>
+                <th>Email-ID</th>
+                <th>Date Of Join</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.customers.map((customer, index) => (
+                <Customer
+                  mode="dashboard"
+                  id={customer._id}
+                  sr={index + 1}
+                  name={customer.name}
+                  email={customer.email}
+                  dateOfJoin={this.convertDate(customer.dateOfJoin)}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }

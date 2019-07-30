@@ -211,7 +211,7 @@ class CustomerPage extends Component {
           </thead>
           <tbody>{membership}</tbody>
         </table>
-
+        <h3>Past History:</h3>
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
             <tr>

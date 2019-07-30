@@ -49,7 +49,7 @@ class CustomerForm extends Component {
   render() {
     const plan = this.state.show ? (
       <div className="form-group">
-        <select className="form-control" name="plan">
+        <select className="form-control" name="plan" required>
           <option value="" selected disabled hidden>
             Choose a plan
           </option>

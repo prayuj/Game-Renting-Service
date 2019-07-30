@@ -293,8 +293,8 @@ class Transactions extends Component {
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
             <tr>
-              <th>Sr</th>
-              <th>Transaction ID</th>
+              <th style={{ paddingBottom: "1.3%" }}>Sr</th>
+              <th style={{ paddingBottom: "1.3%" }}>Transaction ID</th>
               <th>
                 Member Name{" "}
                 <button

@@ -3,19 +3,44 @@ const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const Speakeasy = require("speakeasy");
+const bcrypt = require("bcrypt");
 const PORT = 4000;
+const loginRoutes = express.Router();
 const customerRoutes = express.Router();
 const gameRoutes = express.Router();
 const transactionRoutes = express.Router();
 let Customer = require("./customer.model");
 let Game = require("./game.model");
 let Transaction = require("./transaction.model");
+let Owner = require("./owner.model");
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use("/login", loginRoutes);
 app.use("/customer", customerRoutes);
 app.use("/game", gameRoutes);
 app.use("/transaction", transactionRoutes);
+
+loginRoutes.route("/").post(function(req, res) {
+  Owner.findOne({ email: req.body.email }, "password", function(err, owner) {
+    if (err) console.log(err);
+    else {
+      bcrypt.compare(req.body.password, owner.password, function(err, resp) {
+        res.status(200).json({ isLoggedIn: resp });
+      });
+    }
+  });
+});
+
+loginRoutes.route("/add").post(function(req, res) {
+  let email = req.body.email;
+  let password = req.body.password;
+  bcrypt.hash(password, 10, function(err, hash) {
+    let owner = new Owner({ email: email, password: hash });
+    owner.save().then(resp => res.status(200).json({ status: "Added" }));
+  });
+});
 
 customerRoutes.route("/").get(function(req, res) {
   Customer.aggregate([
@@ -529,6 +554,69 @@ customerRoutes.route("/issue/:id").get(function(req, res) {
   ]).then(docs => res.status(200).json(docs[0]));
 });
 
+customerRoutes
+  .route("/generate_otp/id=:id&mode=:mode&game=:game_id&console=:console")
+  .get(function(req, res) {
+    console.log(req.params);
+    let game_id = req.params.game_id;
+    const secret = Speakeasy.generateSecret().base32;
+    console.log(secret);
+    Customer.findByIdAndUpdate(
+      req.params.id,
+      { secret: secret },
+      (err, docs) => {
+        if (err) console.log(err);
+        else {
+          let customer_name = docs.name;
+          Game.findById(game_id, (err, docs) => {
+            if (err) console.log(err);
+            else {
+              let game_name = docs.name;
+              const token = Speakeasy.totp({
+                secret: secret,
+                encoding: "base32"
+              });
+              console.log(
+                "Hi " +
+                  customer_name +
+                  "! Your OTP " +
+                  token +
+                  " has been generated for " +
+                  req.params.mode +
+                  " " +
+                  game_name +
+                  ", " +
+                  req.params.console
+              );
+            }
+          });
+        }
+      }
+    );
+  });
+
+customerRoutes.route("/verify_otp/:id").post(function(req, res) {
+  let id = req.params.id;
+  let otp = req.body.otp;
+  Customer.findById(id, (err, docs) => {
+    if (err) console.log(err);
+    else {
+      const secret = docs.secret;
+      console.log(secret);
+
+      const isVerify = Speakeasy.totp.verify({
+        secret: secret,
+        encoding: "base32",
+        token: otp,
+        window: 5
+      });
+      res.status(200).json({
+        isVerify: isVerify
+      });
+    }
+  });
+});
+
 customerRoutes.route("/issue/:id").post(function(req, res) {
   let customer_id = mongoose.Types.ObjectId(req.params.id);
   Game.find(
@@ -631,6 +719,11 @@ customerRoutes.route("/return/all").get(function(req, res) {
     { $unwind: "$gameInfo.items" },
     {
       $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
+    },
+    {
+      $sort: {
+        date_issue: -1
+      }
     }
   ])
     .then(resp => {
@@ -660,7 +753,18 @@ customerRoutes.route("/return/:id").get(function(req, res) {
         as: "gameInfo"
       }
     },
+
+    {
+      $lookup: {
+        from: "customers",
+        localField: "customer_id",
+        foreignField: "_id",
+        as: "customerInfo"
+      }
+    },
     { $unwind: "$gameInfo" },
+
+    { $unwind: "$customerInfo" },
     { $unwind: "$gameInfo.items" },
     {
       $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
@@ -672,8 +776,7 @@ customerRoutes.route("/return/:id").get(function(req, res) {
     .catch(err => res.status(500).json(err));
 });
 
-customerRoutes.route("/return/:id").post(function(req, res) {
-  let id = req.params.id;
+customerRoutes.route("/return").post(function(req, res) {
   let transaction_id = req.body.transaction_id;
   let game_id = req.body.game_id;
   let item_id = req.body.item_id;

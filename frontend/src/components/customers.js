@@ -66,15 +66,17 @@ class Customers extends Component {
 
     // If the search bar isn't empty
     if (e.target.value !== "") {
-      console.log("HERE 1");
+      //console.log("HERE 1");
       // Assign the original list to currentList
       currentList = this.state.customers;
+      let firstList = [];
+      let secondList = [];
 
       // Use .filter() to determine which items should be displayed
       // based on the search terms
-      newList = currentList.filter(item => {
+      firstList = currentList.filter(customer => {
         // change current item to lowercase
-        const lc = item.name.toLowerCase();
+        const lc = customer.name.toLowerCase();
         // change search term to lowercase
         const filter = e.target.value.toLowerCase();
         // check to see if the current list item includes the search term
@@ -82,7 +84,26 @@ class Customers extends Component {
         // issues with capitalization in search terms and search content
         return lc.includes(filter);
       });
-      console.log(newList);
+      secondList = currentList.filter(customer => {
+        // change current item to lowercase
+        const lc = customer.name.toLowerCase();
+        // change search term to lowercase
+        const filter = e.target.value.toLowerCase();
+        // check to see if the current list item includes the search term
+        // If it does, it will be added to newList. Using lowercase eliminates
+        // issues with capitalization in search terms and search content
+        return lc.includes(filter);
+      });
+      for (let i = 0; i < secondList.length; i++) {
+        let flag = true;
+        for (let j = 0; j < firstList.length; j++) {
+          if (JSON.stringify(secondList[i]) === JSON.stringify(firstList[j]))
+            flag = false;
+        }
+        if (flag) firstList.push(secondList[i]);
+      }
+      newList = firstList;
+      //console.log(newList);
     } else {
       console.log("HERE 2");
       // If the search bar is empty, set newList to original task list
@@ -274,7 +295,7 @@ class Customers extends Component {
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
             <tr>
-              <th>Sr</th>
+              <th style={{ paddingBottom: "1.3%" }}>Sr</th>
               <th>
                 Name
                 <button
@@ -286,7 +307,7 @@ class Customers extends Component {
                   {this.state.nameSortButtonValue}
                 </button>
               </th>
-              <th>Email-ID</th>
+              <th style={{ paddingBottom: "1.3%" }}>Email-ID</th>
               <th>
                 Date Of Joining
                 <button

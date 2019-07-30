@@ -49,6 +49,46 @@ class Issue extends Component {
     this.getCustomerDetail();
     this.getGames();
   }
+
+  componentDidUpdate() {
+    console.log(this.state.mode, this.props.match.params.mode);
+    if (this.state.mode !== this.props.match.params.mode) {
+      if (this.props.match.params.mode === "customer")
+        this.setState(
+          {
+            mode: "customer",
+            customer_id: this.props.match.params.id
+          },
+          () => {
+            this.getCustomerDetail();
+            this.getGames();
+          }
+        );
+      else if (this.props.match.params.mode === "game")
+        this.setState(
+          {
+            mode: "game",
+            game_id: this.props.match.params.id
+          },
+          () => {
+            this.getCustomerDetail();
+            this.getGames();
+          }
+        );
+      else if (this.props.match.params.mode === "dashboard")
+        this.setState(
+          {
+            mode: "dashboard",
+            show: true
+          },
+          () => {
+            this.getCustomerDetail();
+            this.getGames();
+          }
+        );
+    }
+  }
+
   getCustomerDetail() {
     if (this.state.mode === "customer") {
       axios
@@ -187,7 +227,7 @@ class Issue extends Component {
       e.target.game.value != "default" &&
       e.target.console.value != "default" &&
       e.target.customer.value != "default"
-    )
+    ) {
       this.setState({
         modal_show: true,
         game_id: e.target.game.value,
@@ -195,9 +235,29 @@ class Issue extends Component {
         customer_id: e.target.customer.value,
         button_disable: false
       });
-    else this.setState({ modal_show: true });
+      console.log(
+        "http://localhost:4000/customer/generate_otp/id=" +
+          e.target.customer.value +
+          "&mode=Issuing" +
+          "&game=" +
+          e.target.game.value +
+          "&console=" +
+          e.target.console.value
+      );
+      axios.get(
+        "http://localhost:4000/customer/generate_otp/id=" +
+          e.target.customer.value +
+          "&mode=Issuing" +
+          "&game=" +
+          e.target.game.value +
+          "&console=" +
+          e.target.console.value
+      );
+    } else this.setState({ modal_show: true });
   }
-  handleForm() {
+  handleForm(e) {
+    e.preventDefault();
+    console.log(e.target.otp.value);
     let customer_id = this.state.customer_id;
     let game_id = this.state.game_id;
     let game_console = this.state.selected_console;
@@ -205,23 +265,35 @@ class Issue extends Component {
       game_id: game_id,
       console: game_console
     };
+    console.log(JSON.stringify(data));
     axios
-      .post("http://localhost:4000/customer/issue/" + customer_id, data)
-      .then(res => {
-        if (res.data.game != "Not Available") {
-          this.setState({
-            show: true
-          });
-          this.setState({
-            transactionid: res.data.game
-          });
-          this.setRedirect();
-        } else {
-          alert("Game Not issued");
-        }
+      .post("http://localhost:4000/customer/verify_otp/" + customer_id, {
+        otp: e.target.otp.value
       })
-      .catch(err => {
-        alert(JSON.stringify(err));
+      .then(res => {
+        console.log(res.data.isVerify);
+        if (res.data.isVerify) {
+          axios
+            .post("http://localhost:4000/customer/issue/" + customer_id, data)
+            .then(res => {
+              if (res.data.game != "Not Available") {
+                this.setState({
+                  show: true
+                });
+                this.setState({
+                  transactionid: res.data.game
+                });
+                this.setRedirect();
+              } else {
+                alert(res.data.game);
+              }
+            })
+            .catch(err => {
+              alert(JSON.stringify(err));
+            });
+        } else {
+          alert("Incorrect OTP, Issue again");
+        }
       });
   }
 
@@ -294,8 +366,11 @@ class Issue extends Component {
             className="form-control"
             name="game"
             onChange={this.handleGameChange}
+            required
           >
-            <option value="default">Choose a game</option>
+            <option value="" selected disabled hidden>
+              Choose a Game
+            </option>
             {this.state.games.map(game => (
               <option value={game._id}>{game.name}</option>
             ))}
@@ -305,8 +380,10 @@ class Issue extends Component {
 
       if (this.state.mode === "game") {
         customers = (
-          <select className="form-control" name="customer">
-            <option value="default">Choose a customer</option>
+          <select className="form-control" name="customer" required>
+            <option value="" selected disabled hidden>
+              Choose a Customer
+            </option>
             {this.state.customers.map(customer => (
               <option value={customer._id}>{customer.name}</option>
             ))}
@@ -324,8 +401,10 @@ class Issue extends Component {
 
       if (this.state.mode === "dashboard") {
         customers = (
-          <select className="form-control" name="customer">
-            <option value="default">Choose a customer</option>
+          <select className="form-control" name="customer" required>
+            <option value="" selected disabled hidden>
+              Choose a Customer
+            </option>
             {this.state.customers.map(customer => (
               <option value={customer._id}>{customer.name}</option>
             ))}
@@ -337,8 +416,11 @@ class Issue extends Component {
             className="form-control"
             name="game"
             onChange={this.handleGameChange}
+            required
           >
-            <option value="default">Choose a game</option>
+            <option value="" selected disabled hidden>
+              Choose a Game
+            </option>
             {this.state.games.map(game => (
               <option value={game._id}>{game.name}</option>
             ))}
@@ -356,33 +438,41 @@ class Issue extends Component {
             {games}
             <label>Console</label>
             {console}
-            <input type="submit" value="Issue" className="btn btn-primary" />
+            <input
+              type="submit"
+              value="Issue OTP"
+              className="btn btn-primary"
+            />
           </form>
           <Modal show={this.state.modal_show}>
             <Modal.Header>
               <Modal.Title>Game Issue</Modal.Title>
             </Modal.Header>
+            <form onSubmit={this.handleForm}>
+              <Modal.Body>
+                {this.state.button_disable ? (
+                  <p>Fill in Details</p>
+                ) : (
+                  <div>
+                    Enter OTP
+                    <input type="number" name="otp" />
+                  </div>
+                )}
+              </Modal.Body>
 
-            <Modal.Body>
-              {this.state.button_disable ? (
-                <p>Fill in Details</p>
-              ) : (
-                <p>Are you sure you want to issue?</p>
-              )}
-            </Modal.Body>
-
-            <Modal.Footer>
-              <Button variant="secondary" onClick={this.modalClose}>
-                Close
-              </Button>
-              <Button
-                variant="primary"
-                onClick={this.handleForm}
-                disabled={this.state.button_disable}
-              >
-                Save changes
-              </Button>
-            </Modal.Footer>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={this.modalClose}>
+                  Close
+                </Button>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={this.state.button_disable}
+                >
+                  Save changes
+                </Button>
+              </Modal.Footer>
+            </form>
           </Modal>
         </div>
       );

@@ -176,7 +176,7 @@ class Games extends Component {
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
             <tr>
-              <th>Id</th>
+              <th style={{ paddingBottom: "1.3%" }}>Sr</th>
               <th>
                 Name
                 <button
@@ -188,7 +188,7 @@ class Games extends Component {
                   {this.state.nameSortButtonValue}
                 </button>
               </th>
-              <th>Available In</th>
+              <th style={{ paddingBottom: "1.3%" }}>Available In</th>
               <th>
                 Number Available{" "}
                 <button

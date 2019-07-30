@@ -37,7 +37,10 @@ let Customer = new Schema({
       end: Date,
       active: Boolean
     }
-  ]
+  ],
+  secret: {
+    type: String
+  }
 });
 
 Customer.index({ name: "text" });

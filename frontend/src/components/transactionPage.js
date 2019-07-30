@@ -30,6 +30,15 @@ class TransactionPage extends Component {
   confirmReturn(e) {
     console.log(e.target.id);
     let ids = e.target.id.split(" ");
+    axios.get(
+      "http://localhost:4000/customer/generate_otp/id=" +
+        ids[3] +
+        "&mode=Returning" +
+        "&game=" +
+        ids[1] +
+        "&console=" +
+        ids[4]
+    );
     this.setState({
       modal_show: true,
       ids: ids
@@ -88,21 +97,33 @@ class TransactionPage extends Component {
     }
   };
 
-  handleClick() {
+  handleClick(e) {
+    e.preventDefault();
+    console.log(e.target.otp.value);
     let id = this.state.ids;
     axios
-      .post("http://localhost:4000/customer/return/" + this.state.id, {
-        transaction_id: id[0],
-        game_id: id[1],
-        item_id: id[2]
+      .post("http://localhost:4000/customer/verify_otp/" + id[3], {
+        otp: e.target.otp.value
       })
       .then(res => {
-        console.log(res.data);
-      })
-      .catch(err => console.log(err));
-    this.setState({
-      modal_show: false
-    });
+        console.log(res.data.isVerify);
+        if (res.data.isVerify) {
+          axios
+            .post("http://localhost:4000/customer/return/", {
+              transaction_id: id[0],
+              game_id: id[1],
+              item_id: id[2]
+            })
+            .then(res => {
+              this.setState({
+                modal_show: false
+              });
+            })
+            .catch(err => console.log(err));
+        } else {
+          alert("Incorrect OTP, Issue again");
+        }
+      });
   }
 
   render() {
@@ -150,7 +171,11 @@ class TransactionPage extends Component {
                 " " +
                 this.state.data.game_id +
                 " " +
-                this.state.data.item_id
+                this.state.data.item_id +
+                " " +
+                this.state.data.customerInfo._id +
+                " " +
+                this.state.data.gameInfo.items.console
               }
               onClick={this.confirmReturn}
             />
@@ -159,19 +184,23 @@ class TransactionPage extends Component {
             <Modal.Header>
               <Modal.Title>Game Return</Modal.Title>
             </Modal.Header>
+            <form onSubmit={this.handleClick}>
+              <Modal.Body>
+                <div>
+                  Enter OTP
+                  <input type="number" name="otp" />
+                </div>
+              </Modal.Body>
 
-            <Modal.Body>
-              <p>Are you sure you want to Return?</p>
-            </Modal.Body>
-
-            <Modal.Footer>
-              <Button variant="secondary" onClick={this.modalClose}>
-                Close
-              </Button>
-              <Button variant="primary" onClick={this.handleClick}>
-                Save changes
-              </Button>
-            </Modal.Footer>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={this.modalClose}>
+                  Close
+                </Button>
+                <Button variant="primary" type="submit">
+                  Save changes
+                </Button>
+              </Modal.Footer>
+            </form>
           </Modal>
         </div>
       );
