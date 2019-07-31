@@ -131,8 +131,8 @@ class App extends Component {
   }
 
   render() {
-    console.log(this.state);
-    if (this.state.isLoggedIn)
+    console.log(this.state.isLoggedIn);
+    if (this.state.isLoggedIn === true)
       return (
         <Router>
           <nav className="navbar navbar-expand-lg navbar-dark">

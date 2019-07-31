@@ -14,12 +14,13 @@ class Transactions extends Component {
       ascendingDateReturn: true,
       customerNameSortButtonValue: "Sort",
       gameNameSortButtonValue: "Sort",
-      dateIssueButtonValue: "Sort",
+      dateIssueButtonValue: <span>&darr;</span>,
       dateReturnButtonValue: "Sort"
     };
     this.handleChange = this.handleChange.bind(this);
     this.getTransactions = this.getTransactions.bind(this);
     this.onClickForSort = this.onClickForSort.bind(this);
+    this.getDates = this.getDates.bind(this);
   }
   componentDidMount() {
     this.getTransactions();
@@ -281,6 +282,31 @@ class Transactions extends Component {
     }
   }
 
+  getDates(e) {
+    e.preventDefault();
+    if (e.target.from.value !== "" && e.target.to.value !== "") {
+      console.log(
+        "http://localhost:4000/transaction/dates/from=" +
+          e.target.from.value +
+          "&to=" +
+          e.target.to.value
+      );
+      axios
+        .get(
+          "http://localhost:4000/transaction/dates/from=" +
+            e.target.from.value +
+            "&to=" +
+            e.target.to.value
+        )
+        .then(res =>
+          this.setState({
+            transactions: res.data,
+            filtered: res.data
+          })
+        );
+    }
+  }
+
   render() {
     return (
       <div>
@@ -289,6 +315,18 @@ class Transactions extends Component {
           className="form-control"
           placeholder="Search..."
           onChange={this.handleChange}
+        />
+        <form onSubmit={this.getDates}>
+          <input name="from" type="date" />
+          to
+          <input name="to" type="date" />
+          <input type="submit" className="btn btn-info" value="Get" />
+        </form>
+        <input
+          type="button"
+          className="btn btn-primary"
+          value="Show all"
+          onClick={this.getTransactions}
         />
         <table className="table" style={{ marginTop: 20 }}>
           <thead>

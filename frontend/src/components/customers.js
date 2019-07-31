@@ -16,7 +16,7 @@ class Customers extends Component {
       ascendingNoOfGames: true,
       nameSortButtonValue: "Sort",
       DOJSortButtonValue: "Sort",
-      membershipEndSortButtonValue: "Sort",
+      membershipEndSortButtonValue: <span>&darr;</span>,
       noOfGamesSortButtonValue: "Sort"
     };
     this.getCustomers = this.getCustomers.bind(this);

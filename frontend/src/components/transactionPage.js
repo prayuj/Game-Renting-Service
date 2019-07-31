@@ -53,7 +53,7 @@ class TransactionPage extends Component {
 
   getTransactionDetails() {
     axios
-      .get("http://localhost:4000/transaction/" + this.state.id)
+      .get("http://localhost:4000/transaction/get/" + this.state.id)
       .then(res => {
         this.setState({
           data: res.data

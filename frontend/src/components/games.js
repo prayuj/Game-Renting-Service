@@ -11,7 +11,7 @@ class Games extends Component {
       filtered: [],
       ascendingName: true,
       ascendingAvailable: true,
-      nameSortButtonValue: "Sort",
+      nameSortButtonValue: <span>&darr;</span>,
       availableSortButtonValue: "Sort"
     };
     this.handleChange = this.handleChange.bind(this);

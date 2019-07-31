@@ -132,12 +132,142 @@ customerRoutes.route("/").get(function(req, res) {
     },
     {
       $sort: {
-        name: 1
+        "latestMembership.end": 1
       }
     }
   ])
     .then(docs => res.status(200).json(docs))
     .catch(err => res.status(500).json(err));
+});
+
+customerRoutes.route("/todayCustomer").get(function(req, res) {
+  const startDate = new Date();
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+  Customer.find(
+    {
+      dateOfJoin: {
+        $gte: startDate,
+        $lt: endDate
+      }
+    },
+    (err, docs) => {
+      if (err) console.log(err);
+      else res.status(200).json({ todayCustomer: docs.length });
+    }
+  );
+});
+
+customerRoutes.route("/todayMembershipEnding").get(function(req, res) {
+  const startDate = new Date();
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+
+  Customer.aggregate([
+    {
+      $unwind: "$membership"
+    },
+    {
+      $project: {
+        membership: 1
+      }
+    },
+    {
+      $group: {
+        _id: "$_id",
+        maxStart: {
+          $max: "$membership.start"
+        },
+        membership: {
+          $push: {
+            _id: "$membership._id",
+            plan: "$membership.plan",
+            start: "$membership.start",
+            end: "$membership.end",
+            active: "$membership.active"
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        latestMembership: {
+          $setDifference: [
+            {
+              $map: {
+                input: "$membership",
+                as: "membership",
+                in: {
+                  $cond: [
+                    {
+                      $eq: ["$maxStart", "$$membership.start"]
+                    },
+                    "$$membership",
+                    false
+                  ]
+                }
+              }
+            },
+            [false]
+          ]
+        }
+      }
+    },
+    {
+      $unwind: "$latestMembership"
+    },
+    {
+      $match: {
+        "latestMembership.end": {
+          $gte: startDate,
+          $lt: endDate
+        }
+      }
+    }
+  ])
+    .then(docs => res.status(200).json({ todayMembershipEnding: docs.length }))
+    .catch(err => res.status(500).json(err));
+});
+
+gameRoutes.route("/todayIssued").get(function(req, res) {
+  const startDate = new Date();
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+  Transaction.find(
+    {
+      date_issue: {
+        $gte: startDate,
+        $lt: endDate
+      }
+    },
+    (err, docs) => {
+      if (err) console.log(err);
+      else res.status(200).json({ todayIssued: docs.length });
+    }
+  );
+});
+
+gameRoutes.route("/todayReturn").get(function(req, res) {
+  const startDate = new Date();
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+  Transaction.find(
+    {
+      date_return: {
+        $gte: startDate,
+        $lt: endDate
+      }
+    },
+    (err, docs) => {
+      if (err) console.log(err);
+      else res.status(200).json({ todayReturn: docs.length });
+    }
+  );
 });
 
 gameRoutes.route("/").get(function(req, res) {
@@ -198,24 +328,70 @@ gameRoutes.route("/").get(function(req, res) {
 });
 
 customerRoutes.route("/dashboard").get(function(req, res) {
-  Customer.find(
-    {},
-    "name email dateOfJoin",
+  Customer.aggregate([
     {
-      _id: 1,
-      sort: {
-        dateOfJoin: -1
-      },
-      limit: 5
+      $unwind: "$membership"
     },
-    (err, customers) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.json(customers);
+    {
+      $group: {
+        _id: "$_id",
+        name: { $first: "$name" },
+        email: { $first: "$email" },
+        maxStart: {
+          $max: "$membership.start"
+        },
+        membership: {
+          $push: {
+            _id: "$membership._id",
+            plan: "$membership.plan",
+            start: "$membership.start",
+            end: "$membership.end",
+            active: "$membership.active"
+          }
+        }
       }
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        latestMembership: {
+          $setDifference: [
+            {
+              $map: {
+                input: "$membership",
+                as: "membership",
+                in: {
+                  $cond: [
+                    {
+                      $eq: ["$maxStart", "$$membership.start"]
+                    },
+                    "$$membership",
+                    false
+                  ]
+                }
+              }
+            },
+            [false]
+          ]
+        }
+      }
+    },
+    {
+      $unwind: "$latestMembership"
+    },
+    {
+      $sort: {
+        "latestMembership.end": 1
+      }
+    },
+    {
+      $limit: 5
     }
-  );
+  ])
+    .then(docs => res.status(200).json(docs))
+    .catch(err => res.status(500).json(err));
 });
 
 gameRoutes.route("/dashboard/issue").get(function(req, res) {
@@ -938,7 +1114,7 @@ transactionRoutes.route("/").get(function(req, res) {
   ]).then(docs => res.status(200).json(docs));
 });
 
-transactionRoutes.route("/:id").get(function(req, res) {
+transactionRoutes.route("/get/:id").get(function(req, res) {
   Transaction.aggregate([
     {
       $lookup: {
@@ -986,6 +1162,63 @@ transactionRoutes.route("/:id").get(function(req, res) {
   ]).then(docs => res.status(200).json(docs[0]));
 });
 
+transactionRoutes.route("/dates/from=:from&to=:to").get(function(req, res) {
+  console.log(req.params.from, req.params.to);
+  let from = new Date(req.params.from);
+  from.setHours(0, 0, 0, 0);
+  let to = new Date(req.params.to);
+  to.setHours(23, 59, 59, 999);
+  Transaction.aggregate([
+    {
+      $lookup: {
+        from: "games",
+        localField: "game_id",
+        foreignField: "_id",
+        as: "gameInfo"
+      }
+    },
+    {
+      $unwind: "$gameInfo"
+    },
+    {
+      $unwind: "$gameInfo.items"
+    },
+    {
+      $match: {
+        $expr: {
+          $eq: ["$item_id", "$gameInfo.items._id"]
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: "customers",
+        localField: "customer_id",
+        foreignField: "_id",
+        as: "customerInfo"
+      }
+    },
+    {
+      $unwind: "$customerInfo"
+    },
+    {
+      $match: {
+        date_issue: {
+          $gte: from,
+          $lte: to
+        }
+      }
+    },
+    {
+      $sort: {
+        date_issue: -1
+      }
+    }
+  ])
+    .then(docs => res.status(200).json(docs))
+    .catch(err => console.log(err));
+});
+
 mongoose.connect("mongodb://127.0.0.1:27017/gamerent", {
   useNewUrlParser: true
 });
@@ -1002,6 +1235,7 @@ app.listen(PORT, function() {
 function updateMembership() {
   console.log("Hello");
   let todayDate = new Date();
+  todayDate.setHours(24, 60, 60, 999);
   Customer.aggregate([
     {
       $unwind: "$membership"

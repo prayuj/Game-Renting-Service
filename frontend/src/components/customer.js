@@ -23,7 +23,7 @@ class Customer extends Component {
         sr: props.sr,
         name: props.name,
         email: props.email,
-        dateOfJoin: props.dateOfJoin
+        dateEnding: props.dateEnding
       };
     this.setRedirect = this.setRedirect.bind(this);
   }
@@ -48,7 +48,7 @@ class Customer extends Component {
         sr: nextProps.sr,
         name: nextProps.name,
         email: nextProps.email,
-        dateOfJoin: nextProps.dateOfJoin
+        dateEnding: nextProps.dateEnding
       });
   }
   setRedirect = () => {
@@ -84,7 +84,7 @@ class Customer extends Component {
           <td>{this.state.sr}</td>
           <td>{this.state.name}</td>
           <td>{this.state.email}</td>
-          <td>{this.state.dateOfJoin}</td>
+          <td>{this.state.dateEnding}</td>
         </tr>
       );
   }

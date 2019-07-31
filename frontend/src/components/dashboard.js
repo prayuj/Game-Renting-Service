@@ -12,17 +12,51 @@ class Dashboard extends Component {
       customers: [],
       issue_game: [],
       return_game: [],
-      search: ""
+      search: "",
+      todayCustomer: 0,
+      todayMembershipEnding: 0,
+      todayIssued: 0,
+      todayReturn: 0
     };
+    this.getDetails = this.getDetails.bind(this);
     this.getCustomers = this.getCustomers.bind(this);
     this.getIssuedGames = this.getIssuedGames.bind(this);
     this.getReturnedGames = this.getReturnedGames.bind(this);
   }
 
   componentDidMount() {
+    this.getDetails();
     this.getCustomers();
     this.getIssuedGames();
     this.getReturnedGames();
+  }
+
+  getDetails() {
+    axios.get("http://localhost:4000/customer/todayCustomer").then(res => {
+      this.setState({
+        todayCustomer: res.data.todayCustomer
+      });
+    });
+
+    axios
+      .get("http://localhost:4000/customer/todayMembershipEnding")
+      .then(res => {
+        this.setState({
+          todayMembershipEnding: res.data.todayMembershipEnding
+        });
+      });
+
+    axios.get("http://localhost:4000/game/todayIssued").then(res => {
+      this.setState({
+        todayIssued: res.data.todayIssued
+      });
+    });
+
+    axios.get("http://localhost:4000/game/todayReturn").then(res => {
+      this.setState({
+        todayReturn: res.data.todayReturn
+      });
+    });
   }
 
   getCustomers() {
@@ -72,6 +106,16 @@ class Dashboard extends Component {
   render() {
     return (
       <div>
+        <span>
+          <h4>Customers Added Today:{this.state.todayCustomer}</h4>
+          <h4>
+            Customers Membership Ending Today:{this.state.todayMembershipEnding}
+          </h4>
+          <h4>Games Issued Today:{this.state.todayIssued}</h4>
+          <h4>Games Returned Today:{this.state.todayReturn}</h4>
+        </span>
+        <hr />
+        <br />
         <h3>Recently Issued Games</h3>
         <table className="table" style={{ marginTop: 20 }}>
           <thead>
@@ -125,14 +169,14 @@ class Dashboard extends Component {
         <hr />
         <br />
         <div>
-          <h3>Recently Added Customers</h3>
+          <h3>Membership Ending Soon</h3>
           <table className="table" style={{ marginTop: 20, padding: "2px" }}>
             <thead>
               <tr>
                 <th>Sr</th>
                 <th>Name</th>
                 <th>Email-ID</th>
-                <th>Date Of Join</th>
+                <th>Date Ending</th>
               </tr>
             </thead>
             <tbody>
@@ -143,7 +187,7 @@ class Dashboard extends Component {
                   sr={index + 1}
                   name={customer.name}
                   email={customer.email}
-                  dateOfJoin={this.convertDate(customer.dateOfJoin)}
+                  dateEnding={this.convertDate(customer.latestMembership.end)}
                 />
               ))}
             </tbody>

@@ -20,7 +20,7 @@ class Return extends Component {
         ascendingDateIssue: true,
         customerNameSortButtonValue: "Sort",
         gameNameSortButtonValue: "Sort",
-        dateIssueButtonValue: "Sort"
+        dateIssueButtonValue: <span>&darr;</span>
       };
     } else {
       this.state = {
@@ -34,7 +34,7 @@ class Return extends Component {
         ascendingDateIssue: true,
         customerNameSortButtonValue: "Sort",
         gameNameSortButtonValue: "Sort",
-        dateIssueButtonValue: "Sort"
+        dateIssueButtonValue: <span>&darr;</span>
       };
     }
 
