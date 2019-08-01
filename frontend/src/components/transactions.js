@@ -15,17 +15,28 @@ class Transactions extends Component {
       customerNameSortButtonValue: "Sort",
       gameNameSortButtonValue: "Sort",
       dateIssueButtonValue: <span>&darr;</span>,
-      dateReturnButtonValue: "Sort"
+      dateReturnButtonValue: "Sort",
+      dateIssueFrom: "",
+      dateIssueTo: "",
+      dateReturnFrom: "",
+      dateReturnTo: ""
     };
     this.handleChange = this.handleChange.bind(this);
     this.getTransactions = this.getTransactions.bind(this);
     this.onClickForSort = this.onClickForSort.bind(this);
-    this.getDates = this.getDates.bind(this);
+    this.getIssueDates = this.getIssueDates.bind(this);
+    this.getReturnDates = this.getReturnDates.bind(this);
   }
   componentDidMount() {
     this.getTransactions();
   }
   getTransactions() {
+    this.setState({
+      dateIssueFrom: "",
+      dateIssueTo: "",
+      dateReturnFrom: "",
+      dateReturnTo: ""
+    });
     axios.get("http://localhost:4000/transaction").then(res =>
       this.setState({
         transactions: res.data,
@@ -91,7 +102,6 @@ class Transactions extends Component {
     });
   }
   onClickForSort(e) {
-    console.log(e.target.value);
     if (e.target.value === "Customer Name") {
       let transactions = this.state.filtered;
       transactions.sort((a, b) => {
@@ -116,7 +126,6 @@ class Transactions extends Component {
           return 0;
         }
       });
-      console.log(transactions);
       let arrow = this.state.ascendingCustomerName ? (
         <span>&darr;</span>
       ) : (
@@ -155,7 +164,6 @@ class Transactions extends Component {
           return 0;
         }
       });
-      console.log(transactions);
       let arrow = this.state.ascendingGameName ? (
         <span>&darr;</span>
       ) : (
@@ -282,18 +290,12 @@ class Transactions extends Component {
     }
   }
 
-  getDates(e) {
+  getIssueDates(e) {
     e.preventDefault();
     if (e.target.from.value !== "" && e.target.to.value !== "") {
-      console.log(
-        "http://localhost:4000/transaction/dates/from=" +
-          e.target.from.value +
-          "&to=" +
-          e.target.to.value
-      );
       axios
         .get(
-          "http://localhost:4000/transaction/dates/from=" +
+          "http://localhost:4000/transaction/dates/mode=issue&from=" +
             e.target.from.value +
             "&to=" +
             e.target.to.value
@@ -307,6 +309,33 @@ class Transactions extends Component {
     }
   }
 
+  getReturnDates(e) {
+    e.preventDefault();
+    if (e.target.from.value !== "" && e.target.to.value !== "") {
+      axios
+        .get(
+          "http://localhost:4000/transaction/dates/mode=return&from=" +
+            e.target.from.value +
+            "&to=" +
+            e.target.to.value
+        )
+        .then(res =>
+          this.setState({
+            transactions: res.data,
+            filtered: res.data
+          })
+        );
+    }
+  }
+
+  getToday() {
+    var date = new Date();
+    var dd = String(date.getDate()).padStart(2, "0");
+    var mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
+    var yyyy = date.getFullYear();
+    return yyyy + "-" + mm + "-" + dd;
+  }
+
   render() {
     return (
       <div>
@@ -316,10 +345,45 @@ class Transactions extends Component {
           placeholder="Search..."
           onChange={this.handleChange}
         />
-        <form onSubmit={this.getDates}>
-          <input name="from" type="date" />
+        <form onSubmit={this.getIssueDates}>
+          Select Date of Issue
+          <input
+            name="from"
+            type="date"
+            value={this.state.dateIssueFrom}
+            max={this.getToday()}
+            onChange={e => this.setState({ dateIssueFrom: e.target.value })}
+          />
           to
-          <input name="to" type="date" />
+          <input
+            name="to"
+            type="date"
+            value={this.state.dateIssueTo}
+            min={this.state.dateIssueFrom}
+            max={this.getToday()}
+            onChange={e => this.setState({ dateIssueTo: e.target.value })}
+          />
+          <input type="submit" className="btn btn-info" value="Get" />
+        </form>
+
+        <form onSubmit={this.getReturnDates}>
+          Select Date of Return
+          <input
+            name="from"
+            type="date"
+            max={this.getToday()}
+            value={this.state.dateReturnFrom}
+            onChange={e => this.setState({ dateReturnFrom: e.target.value })}
+          />
+          to
+          <input
+            name="to"
+            type="date"
+            value={this.state.dateReturnTo}
+            min={this.state.dateReturnFrom}
+            max={this.getToday()}
+            onChange={e => this.setState({ dateReturnTo: e.target.value })}
+          />
           <input type="submit" className="btn btn-info" value="Get" />
         </form>
         <input

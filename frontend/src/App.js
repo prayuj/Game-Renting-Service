@@ -1,6 +1,13 @@
 import React, { Component } from "react";
-import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Link,
+  Switch,
+  Redirect
+} from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
+import { PrivateRoute } from "./components/PrivateRoute";
 import Login from "./components/login";
 import Dashboard from "./components/dashboard";
 import Customers from "./components/customers";
@@ -23,9 +30,8 @@ import axios from "axios";
 class App extends Component {
   constructor(props) {
     super(props);
-    console.log(localStorage.isLoggedIn);
-    let isLoggedIn = false;
-    if (localStorage.isLoggedIn) isLoggedIn = localStorage.isLoggedIn;
+    let showNavbar = false;
+    if (localStorage.getItem("isLoggedIn")) showNavbar = true;
     let currentPath = window.location.pathname;
     if (
       currentPath.match(/^\/customer/) ||
@@ -35,7 +41,7 @@ class App extends Component {
       console.log("1");
       this.state = {
         active: "customers",
-        isLoggedIn: isLoggedIn
+        showNavbar: showNavbar
       };
     } else if (
       currentPath.match(/^\/game/) ||
@@ -45,36 +51,36 @@ class App extends Component {
       console.log("2");
       this.state = {
         active: "games",
-        isLoggedIn: isLoggedIn
+        showNavbar: showNavbar
       };
     } else if (currentPath.match(/^\/transaction/)) {
       console.log("3");
       this.state = {
         active: "transactions",
-        isLoggedIn: isLoggedIn
+        showNavbar: showNavbar
       };
     } else if (currentPath.match(/^\/issue/)) {
       console.log("4");
       this.state = {
         active: "issue",
-        isLoggedIn: isLoggedIn
+        showNavbar: showNavbar
       };
     } else if (currentPath.match(/^\/return/)) {
       console.log("5");
       this.state = {
         active: "return",
-        isLoggedIn: isLoggedIn
+        showNavbar: showNavbar
       };
     } else {
       console.log("6");
       this.state = {
         active: "dashboard",
-        isLoggedIn: isLoggedIn
+        showNavbar: showNavbar
       };
     }
     this.onCickHandler = this.onCickHandler.bind(this);
-    this.handleLogin = this.handleLogin.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
+    this.handleLoginInApp = this.handleLoginInApp.bind(this);
   }
 
   componentDidUpdate() {
@@ -110,31 +116,23 @@ class App extends Component {
     }
   }
 
-  handleLogin(state) {
-    axios.post("http://localhost:4000/login/", state).then(res => {
-      this.setState({
-        isLoggedIn: res.data.isLoggedIn
-      });
-      localStorage.setItem("isLoggedIn", res.data.isLoggedIn);
-      if (!res.data.isLoggedIn) {
-        alert("Wrong Password");
-      }
+  handleLogout() {
+    localStorage.removeItem("isLoggedIn");
+    this.setState({
+      showNavbar: false
     });
   }
 
-  handleLogout() {
+  handleLoginInApp() {
     this.setState({
-      isLoggedIn: false
+      showNavbar: true
     });
-
-    localStorage.setItem("isLoggedIn", false);
   }
 
   render() {
-    console.log(this.state.isLoggedIn);
-    if (this.state.isLoggedIn === true)
-      return (
-        <Router>
+    return (
+      <Router>
+        {this.state.showNavbar ? (
           <nav className="navbar navbar-expand-lg navbar-dark">
             <div className="collpase navbar-collapse">
               <ul className="navbar-nav nav nav-pills mr-auto">
@@ -234,27 +232,38 @@ class App extends Component {
               </div>
             </div>
           </nav>
-          <br />
-          <Switch>
-            <Route path="/" exact component={Dashboard} />
-            <Route path="/customers" component={Customers} />
-            <Route path="/games" component={Games} />
-            <Route path="/transactions" component={Transactions} />
-            <Route path="/game/:id" component={GamePage} />
-            <Route path="/customer/:id" component={CustomerPage} />
-            <Route path="/transaction/:id" component={TransactionPage} />
-            <Route path="/add_game" component={AddGame} />
-            <Route path="/add_customer" component={AddCustomer} />
-            <Route path="/update_customer/:id" component={UpdateCustomer} />
-            <Route path="/update_game/:id" component={UpdateGame} />
-            <Route path="/add_plan/:id" component={AddPlan} />
-            <Route path="/issue/mode=:mode&id=:id" component={Issue} />
-            <Route path="/return/mode=:mode&id=:id" component={Return} />
-            <Route component={NotFound} />
-          </Switch>
-        </Router>
-      );
-    else return <Login handleForm={this.handleLogin} />;
+        ) : (
+          <Login onSubmit={this.handleLoginInApp} />
+        )}
+        <Switch>
+          <PrivateRoute path="/" exact component={Dashboard} />
+          <Route
+            path="/login"
+            render={() => {
+              if (this.state.showNavbar) return <Redirect to="/" />;
+              else console.log("Hello");
+            }}
+          />
+          <PrivateRoute path="/customers" component={Customers} />
+          <PrivateRoute path="/games" component={Games} />
+          <PrivateRoute path="/transactions" component={Transactions} />
+          <PrivateRoute path="/game/:id" component={GamePage} />
+          <PrivateRoute path="/customer/:id" component={CustomerPage} />
+          <PrivateRoute path="/transaction/:id" component={TransactionPage} />
+          <PrivateRoute path="/add_game" component={AddGame} />
+          <PrivateRoute path="/add_customer" component={AddCustomer} />
+          <PrivateRoute
+            path="/update_customer/:id"
+            component={UpdateCustomer}
+          />
+          <PrivateRoute path="/update_game/:id" component={UpdateGame} />
+          <PrivateRoute path="/add_plan/:id" component={AddPlan} />
+          <PrivateRoute path="/issue/mode=:mode&id=:id" component={Issue} />
+          <PrivateRoute path="/return/mode=:mode&id=:id" component={Return} />
+          <PrivateRoute component={NotFound} />
+        </Switch>
+      </Router>
+    );
   }
 }
 

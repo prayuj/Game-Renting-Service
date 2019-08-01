@@ -730,6 +730,30 @@ customerRoutes.route("/issue/:id").get(function(req, res) {
   ]).then(docs => res.status(200).json(docs[0]));
 });
 
+customerRoutes.route("/generate_otp/id=:id&mode=:mode").get(function(req, res) {
+  console.log(req.params);
+  let game_id = req.params.game_id;
+  const secret = Speakeasy.generateSecret().base32;
+  console.log(secret);
+  Customer.findByIdAndUpdate(req.params.id, { secret: secret }, (err, docs) => {
+    if (err) console.log(err);
+    else {
+      let customer_name = docs.name;
+      const token = Speakeasy.totp({
+        secret: secret,
+        encoding: "base32"
+      });
+      console.log(
+        "Hi " +
+          customer_name +
+          "! Your OTP " +
+          token +
+          " has been generated for updating your profile"
+      );
+    }
+  });
+});
+
 customerRoutes
   .route("/generate_otp/id=:id&mode=:mode&game=:game_id&console=:console")
   .get(function(req, res) {
@@ -1162,62 +1186,76 @@ transactionRoutes.route("/get/:id").get(function(req, res) {
   ]).then(docs => res.status(200).json(docs[0]));
 });
 
-transactionRoutes.route("/dates/from=:from&to=:to").get(function(req, res) {
-  console.log(req.params.from, req.params.to);
-  let from = new Date(req.params.from);
-  from.setHours(0, 0, 0, 0);
-  let to = new Date(req.params.to);
-  to.setHours(23, 59, 59, 999);
-  Transaction.aggregate([
-    {
-      $lookup: {
-        from: "games",
-        localField: "game_id",
-        foreignField: "_id",
-        as: "gameInfo"
-      }
-    },
-    {
-      $unwind: "$gameInfo"
-    },
-    {
-      $unwind: "$gameInfo.items"
-    },
-    {
-      $match: {
-        $expr: {
-          $eq: ["$item_id", "$gameInfo.items._id"]
+transactionRoutes
+  .route("/dates/mode=:mode&from=:from&to=:to")
+  .get(function(req, res) {
+    console.log(req.params.from, req.params.to);
+    let from = new Date(req.params.from);
+    from.setHours(0, 0, 0, 0);
+    let to = new Date(req.params.to);
+    to.setHours(23, 59, 59, 999);
+    let selector;
+    if (req.params.mode === "issue")
+      selector = {
+        $match: {
+          date_issue: {
+            $gte: from,
+            $lte: to
+          }
+        }
+      };
+    else if (req.params.mode === "return")
+      selector = {
+        $match: {
+          date_return: {
+            $gte: from,
+            $lte: to
+          }
+        }
+      };
+    Transaction.aggregate([
+      {
+        $lookup: {
+          from: "games",
+          localField: "game_id",
+          foreignField: "_id",
+          as: "gameInfo"
+        }
+      },
+      {
+        $unwind: "$gameInfo"
+      },
+      {
+        $unwind: "$gameInfo.items"
+      },
+      {
+        $match: {
+          $expr: {
+            $eq: ["$item_id", "$gameInfo.items._id"]
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: "customers",
+          localField: "customer_id",
+          foreignField: "_id",
+          as: "customerInfo"
+        }
+      },
+      {
+        $unwind: "$customerInfo"
+      },
+      selector,
+      {
+        $sort: {
+          date_issue: -1
         }
       }
-    },
-    {
-      $lookup: {
-        from: "customers",
-        localField: "customer_id",
-        foreignField: "_id",
-        as: "customerInfo"
-      }
-    },
-    {
-      $unwind: "$customerInfo"
-    },
-    {
-      $match: {
-        date_issue: {
-          $gte: from,
-          $lte: to
-        }
-      }
-    },
-    {
-      $sort: {
-        date_issue: -1
-      }
-    }
-  ])
-    .then(docs => res.status(200).json(docs))
-    .catch(err => console.log(err));
-});
+    ])
+      .then(docs => res.status(200).json(docs))
+      .catch(err => console.log(err));
+  });
 
 mongoose.connect("mongodb://127.0.0.1:27017/gamerent", {
   useNewUrlParser: true

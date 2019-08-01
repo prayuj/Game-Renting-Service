@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 import axios from "axios";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
 import { Redirect } from "react-router-dom";
 
 class CustomerPage extends Component {
@@ -7,8 +9,10 @@ class CustomerPage extends Component {
     super(props);
     this.state = {
       id: props.match.params.id,
-      data: ""
+      data: "",
+      modal_show: false
     };
+    this.handleClick = this.handleClick.bind(this);
   }
 
   componentDidMount() {
@@ -49,11 +53,16 @@ class CustomerPage extends Component {
         redirect_to_transaction: true,
         transaction_id: e.target.attributes[1].value
       });
-    } else if (e.target.value === "Update")
+    } else if (e.target.value === "Update") {
+      axios.get(
+        "http://localhost:4000/customer/generate_otp/id=" +
+          this.state.id +
+          "&mode=Updating"
+      );
       this.setState({
-        redirect_to_update: true
+        modal_show: true
       });
-    else if (e.target.value === "Issue")
+    } else if (e.target.value === "Issue")
       this.setState({
         redirect_to_issue: true
       });
@@ -84,6 +93,26 @@ class CustomerPage extends Component {
       return <Redirect push to={"/transaction/" + this.state.transaction_id} />;
     }
   };
+
+  handleClick(e) {
+    e.preventDefault();
+    console.log(e.target.otp.value);
+    let customer_id = this.state.id;
+    axios
+      .post("http://localhost:4000/customer/verify_otp/" + customer_id, {
+        otp: e.target.otp.value
+      })
+      .then(res => {
+        console.log(res.data.isVerify);
+        if (res.data.isVerify) {
+          this.setState({
+            redirect_to_update: true
+          });
+        } else {
+          alert("Incorrect OTP, Issue again");
+        }
+      });
+  }
 
   convertDate(dates) {
     var date = new Date(dates);
@@ -225,6 +254,31 @@ class CustomerPage extends Component {
           </thead>
           <tbody>{history}</tbody>
         </table>
+        <Modal show={this.state.modal_show}>
+          <Modal.Header>
+            <Modal.Title>Game Return</Modal.Title>
+          </Modal.Header>
+          <form onSubmit={this.handleClick}>
+            <Modal.Body>
+              <div>
+                Enter OTP
+                <input type="number" name="otp" />
+              </div>
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={() => this.setState({ modal_show: false })}
+              >
+                Close
+              </Button>
+              <Button variant="primary" type="submit">
+                Save changes
+              </Button>
+            </Modal.Footer>
+          </form>
+        </Modal>
       </div>
     );
   }
