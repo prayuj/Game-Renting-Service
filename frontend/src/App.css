@@ -37,22 +37,13 @@
 }
 nav {
   background-color: #04313d;
+  margin-bottom: 1%;
 }
 
 thead {
   background-color: #04313d;
   color: azure;
   /* margin: 1%; */
-}
-
-hr {
-  display: block;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  margin-left: auto;
-  margin-right: auto;
-  border-style: inset;
-  border-width: 3px;
 }
 
 @media all and (min-width: 480px) {

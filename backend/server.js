@@ -140,102 +140,106 @@ customerRoutes.route("/").get(function(req, res) {
     .catch(err => res.status(500).json(err));
 });
 
-customerRoutes.route("/todayCustomer").get(function(req, res) {
-  const startDate = new Date();
-  startDate.setHours(0, 0, 0, 0);
-  const endDate = new Date();
-  endDate.setHours(23, 59, 59, 999);
-  Customer.find(
-    {
-      dateOfJoin: {
-        $gte: startDate,
-        $lt: endDate
-      }
-    },
-    (err, docs) => {
-      if (err) console.log(err);
-      else res.status(200).json({ todayCustomer: docs.length });
-    }
-  );
-});
-
-customerRoutes.route("/todayMembershipEnding").get(function(req, res) {
-  const startDate = new Date();
-  startDate.setHours(0, 0, 0, 0);
-  const endDate = new Date();
-  endDate.setHours(23, 59, 59, 999);
-
-  Customer.aggregate([
-    {
-      $unwind: "$membership"
-    },
-    {
-      $project: {
-        membership: 1
-      }
-    },
-    {
-      $group: {
-        _id: "$_id",
-        maxStart: {
-          $max: "$membership.start"
-        },
-        membership: {
-          $push: {
-            _id: "$membership._id",
-            plan: "$membership.plan",
-            start: "$membership.start",
-            end: "$membership.end",
-            active: "$membership.active"
-          }
-        }
-      }
-    },
-    {
-      $project: {
-        _id: 1,
-        latestMembership: {
-          $setDifference: [
-            {
-              $map: {
-                input: "$membership",
-                as: "membership",
-                in: {
-                  $cond: [
-                    {
-                      $eq: ["$maxStart", "$$membership.start"]
-                    },
-                    "$$membership",
-                    false
-                  ]
-                }
-              }
-            },
-            [false]
-          ]
-        }
-      }
-    },
-    {
-      $unwind: "$latestMembership"
-    },
-    {
-      $match: {
-        "latestMembership.end": {
+customerRoutes
+  .route("/CustomersAdded/from=:from&to=:to")
+  .get(function(req, res) {
+    let startDate = new Date(req.params.from);
+    startDate.setHours(0, 0, 0, 0);
+    let endDate = new Date(req.params.to);
+    endDate.setHours(23, 59, 59, 999);
+    Customer.find(
+      {
+        dateOfJoin: {
           $gte: startDate,
           $lt: endDate
         }
+      },
+      (err, docs) => {
+        if (err) console.log(err);
+        else res.status(200).json({ CustomersAdded: docs.length });
       }
-    }
-  ])
-    .then(docs => res.status(200).json({ todayMembershipEnding: docs.length }))
-    .catch(err => res.status(500).json(err));
-});
+    );
+  });
 
-gameRoutes.route("/todayIssued").get(function(req, res) {
-  const startDate = new Date();
+customerRoutes
+  .route("/MembershipEnding/from=:from&to=:to")
+  .get(function(req, res) {
+    let startDate = new Date(req.params.from);
+    startDate.setHours(0, 0, 0, 0);
+    let endDate = new Date(req.params.to);
+    endDate.setHours(23, 59, 59, 999);
+
+    Customer.aggregate([
+      {
+        $unwind: "$membership"
+      },
+      {
+        $project: {
+          membership: 1
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          maxStart: {
+            $max: "$membership.start"
+          },
+          membership: {
+            $push: {
+              _id: "$membership._id",
+              plan: "$membership.plan",
+              start: "$membership.start",
+              end: "$membership.end",
+              active: "$membership.active"
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          latestMembership: {
+            $setDifference: [
+              {
+                $map: {
+                  input: "$membership",
+                  as: "membership",
+                  in: {
+                    $cond: [
+                      {
+                        $eq: ["$maxStart", "$$membership.start"]
+                      },
+                      "$$membership",
+                      false
+                    ]
+                  }
+                }
+              },
+              [false]
+            ]
+          }
+        }
+      },
+      {
+        $unwind: "$latestMembership"
+      },
+      {
+        $match: {
+          "latestMembership.end": {
+            $gte: startDate,
+            $lt: endDate
+          }
+        }
+      }
+    ])
+      .then(docs => res.status(200).json({ MembershipEnding: docs.length }))
+      .catch(err => res.status(500).json(err));
+  });
+
+gameRoutes.route("/GamesIssued/from=:from&to=:to").get(function(req, res) {
+  let startDate = new Date(req.params.from);
   startDate.setHours(0, 0, 0, 0);
-  const endDate = new Date();
+  let endDate = new Date(req.params.to);
   endDate.setHours(23, 59, 59, 999);
   Transaction.find(
     {
@@ -246,15 +250,15 @@ gameRoutes.route("/todayIssued").get(function(req, res) {
     },
     (err, docs) => {
       if (err) console.log(err);
-      else res.status(200).json({ todayIssued: docs.length });
+      else res.status(200).json({ GamesIssued: docs.length });
     }
   );
 });
 
-gameRoutes.route("/todayReturn").get(function(req, res) {
-  const startDate = new Date();
+gameRoutes.route("/GamesReturn/from=:from&to=:to").get(function(req, res) {
+  let startDate = new Date(req.params.from);
   startDate.setHours(0, 0, 0, 0);
-  const endDate = new Date();
+  let endDate = new Date(req.params.to);
   endDate.setHours(23, 59, 59, 999);
   Transaction.find(
     {
@@ -265,7 +269,7 @@ gameRoutes.route("/todayReturn").get(function(req, res) {
     },
     (err, docs) => {
       if (err) console.log(err);
-      else res.status(200).json({ todayReturn: docs.length });
+      else res.status(200).json({ GamesReturn: docs.length });
     }
   );
 });
@@ -730,34 +734,10 @@ customerRoutes.route("/issue/:id").get(function(req, res) {
   ]).then(docs => res.status(200).json(docs[0]));
 });
 
-customerRoutes.route("/generate_otp/id=:id&mode=:mode").get(function(req, res) {
-  console.log(req.params);
-  let game_id = req.params.game_id;
-  const secret = Speakeasy.generateSecret().base32;
-  console.log(secret);
-  Customer.findByIdAndUpdate(req.params.id, { secret: secret }, (err, docs) => {
-    if (err) console.log(err);
-    else {
-      let customer_name = docs.name;
-      const token = Speakeasy.totp({
-        secret: secret,
-        encoding: "base32"
-      });
-      console.log(
-        "Hi " +
-          customer_name +
-          "! Your OTP " +
-          token +
-          " has been generated for updating your profile"
-      );
-    }
-  });
-});
-
 customerRoutes
   .route("/generate_otp/id=:id&mode=:mode&game=:game_id&console=:console")
   .get(function(req, res) {
-    console.log(req.params);
+    console.log(req.params.mode);
     let game_id = req.params.game_id;
     const secret = Speakeasy.generateSecret().base32;
     console.log(secret);
@@ -767,29 +747,44 @@ customerRoutes
       (err, docs) => {
         if (err) console.log(err);
         else {
-          let customer_name = docs.name;
-          Game.findById(game_id, (err, docs) => {
-            if (err) console.log(err);
-            else {
-              let game_name = docs.name;
-              const token = Speakeasy.totp({
-                secret: secret,
-                encoding: "base32"
-              });
-              console.log(
-                "Hi " +
-                  customer_name +
-                  "! Your OTP " +
-                  token +
-                  " has been generated for " +
-                  req.params.mode +
-                  " " +
-                  game_name +
-                  ", " +
-                  req.params.console
-              );
-            }
-          });
+          if (req.params.mode === "Updating") {
+            let customer_name = docs.name;
+            const token = Speakeasy.totp({
+              secret: secret,
+              encoding: "base32"
+            });
+            console.log(
+              "Hi " +
+                customer_name +
+                "! Your OTP " +
+                token +
+                " has been generated for updating your profile"
+            );
+          } else {
+            let customer_name = docs.name;
+            Game.findById(game_id, (err, docs) => {
+              if (err) console.log(err);
+              else {
+                let game_name = docs.name;
+                const token = Speakeasy.totp({
+                  secret: secret,
+                  encoding: "base32"
+                });
+                console.log(
+                  "Hi " +
+                    customer_name +
+                    "! Your OTP " +
+                    token +
+                    " has been generated for " +
+                    req.params.mode +
+                    " " +
+                    game_name +
+                    ", " +
+                    req.params.console
+                );
+              }
+            });
+          }
         }
       }
     );
@@ -1271,7 +1266,7 @@ app.listen(PORT, function() {
 });
 
 function updateMembership() {
-  console.log("Hello");
+  console.log("Checking validity of membership");
   let todayDate = new Date();
   todayDate.setHours(24, 60, 60, 999);
   Customer.aggregate([
@@ -1305,4 +1300,4 @@ function updateMembership() {
   });
 }
 
-setInterval(updateMembership, 5000);
+setInterval(updateMembership, 50000);

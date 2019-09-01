@@ -57,7 +57,7 @@ class CustomerPage extends Component {
       axios.get(
         "http://localhost:4000/customer/generate_otp/id=" +
           this.state.id +
-          "&mode=Updating"
+          "&mode=Updating&game=Null&console=Null"
       );
       this.setState({
         modal_show: true

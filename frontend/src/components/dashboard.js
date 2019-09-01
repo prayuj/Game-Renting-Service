@@ -13,15 +13,19 @@ class Dashboard extends Component {
       issue_game: [],
       return_game: [],
       search: "",
-      todayCustomer: 0,
-      todayMembershipEnding: 0,
-      todayIssued: 0,
-      todayReturn: 0
+      dateFrom: "",
+      dateTo: "",
+      CustomersAdded: 0,
+      MembershipEnding: 0,
+      GamesIssued: 0,
+      GamesReturn: 0,
+      message: "Today"
     };
     this.getDetails = this.getDetails.bind(this);
     this.getCustomers = this.getCustomers.bind(this);
     this.getIssuedGames = this.getIssuedGames.bind(this);
     this.getReturnedGames = this.getReturnedGames.bind(this);
+    this.getDashboardDetails = this.getDashboardDetails.bind(this);
   }
 
   componentDidMount() {
@@ -32,31 +36,57 @@ class Dashboard extends Component {
   }
 
   getDetails() {
-    axios.get("http://localhost:4000/customer/todayCustomer").then(res => {
-      this.setState({
-        todayCustomer: res.data.todayCustomer
-      });
-    });
-
     axios
-      .get("http://localhost:4000/customer/todayMembershipEnding")
+      .get(
+        "http://localhost:4000/customer/CustomersAdded/from=" +
+          this.getToday() +
+          "&to=" +
+          this.getToday()
+      )
       .then(res => {
         this.setState({
-          todayMembershipEnding: res.data.todayMembershipEnding
+          CustomersAdded: res.data.CustomersAdded
         });
       });
 
-    axios.get("http://localhost:4000/game/todayIssued").then(res => {
-      this.setState({
-        todayIssued: res.data.todayIssued
+    axios
+      .get(
+        "http://localhost:4000/customer/MembershipEnding/from=" +
+          this.getToday() +
+          "&to=" +
+          this.getToday()
+      )
+      .then(res => {
+        this.setState({
+          MembershipEnding: res.data.MembershipEnding
+        });
       });
-    });
 
-    axios.get("http://localhost:4000/game/todayReturn").then(res => {
-      this.setState({
-        todayReturn: res.data.todayReturn
+    axios
+      .get(
+        "http://localhost:4000/game/GamesIssued/from=" +
+          this.getToday() +
+          "&to=" +
+          this.getToday()
+      )
+      .then(res => {
+        this.setState({
+          GamesIssued: res.data.GamesIssued
+        });
       });
-    });
+
+    axios
+      .get(
+        "http://localhost:4000/game/GamesReturn/from=" +
+          this.getToday() +
+          "&to=" +
+          this.getToday()
+      )
+      .then(res => {
+        this.setState({
+          GamesReturn: res.data.GamesReturn
+        });
+      });
   }
 
   getCustomers() {
@@ -88,22 +118,163 @@ class Dashboard extends Component {
   convertDate(dates) {
     var date = new Date(dates);
     var dd = String(date.getDate()).padStart(2, "0");
-    var mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
+    var mm = parseInt(date.getMonth()); //January is 0!
     var yyyy = date.getFullYear();
-    var today = dd + "/" + mm + "/" + yyyy;
+    var month_names = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ];
+    var today = dd + "/" + month_names[mm] + "/" + yyyy;
     console.log(today);
     return today;
   }
+  getToday() {
+    var date = new Date();
+    var dd = String(date.getDate()).padStart(2, "0");
+    var mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
+    var yyyy = date.getFullYear();
+    return yyyy + "-" + mm + "-" + dd;
+  }
+
+  getDashboardDetails(e) {
+    e.preventDefault();
+    if (e.target.from.value !== "" && e.target.to.value !== "") {
+      axios
+        .get(
+          "http://localhost:4000/customer/CustomersAdded/from=" +
+            e.target.from.value +
+            "&to=" +
+            e.target.to.value
+        )
+        .then(res => {
+          this.setState({
+            CustomersAdded: res.data.CustomersAdded
+          });
+        });
+
+      axios
+        .get(
+          "http://localhost:4000/customer/MembershipEnding/from=" +
+            e.target.from.value +
+            "&to=" +
+            e.target.to.value
+        )
+        .then(res => {
+          this.setState({
+            MembershipEnding: res.data.MembershipEnding
+          });
+        });
+
+      axios
+        .get(
+          "http://localhost:4000/game/GamesIssued/from=" +
+            e.target.from.value +
+            "&to=" +
+            e.target.to.value
+        )
+        .then(res => {
+          this.setState({
+            GamesIssued: res.data.GamesIssued
+          });
+        });
+
+      axios
+        .get(
+          "http://localhost:4000/game/GamesReturn/from=" +
+            e.target.from.value +
+            "&to=" +
+            e.target.to.value
+        )
+        .then(res => {
+          this.setState({
+            GamesReturn: res.data.GamesReturn
+          });
+        });
+      if (this.state.dateFrom === this.state.dateTo)
+        if (this.state.dateFrom === this.getToday()) {
+          this.setState({
+            message: "Today"
+          });
+        } else {
+          this.setState({
+            message: "on " + this.convertDate(this.state.dateTo) + " "
+          });
+        }
+      else
+        this.setState({
+          message:
+            "from " +
+            this.convertDate(this.state.dateFrom) +
+            " to " +
+            this.convertDate(this.state.dateTo) +
+            " "
+        });
+    }
+  }
+
   render() {
+    let message = "today";
+    if (this.state.dateFrom != "" && this.state.dateTo != "") {
+      if (this.state.dateFrom === this.state.dateTo)
+        message = "on " + this.convertDate(this.state.dateTo) + " ";
+      else
+        message =
+          "from " +
+          this.convertDate(this.state.dateFrom) +
+          " to " +
+          this.convertDate(this.state.dateTo) +
+          " ";
+    }
+
     return (
       <div>
         <span>
-          <h4>Customers Added Today:{this.state.todayCustomer}</h4>
+          <form onSubmit={this.getDashboardDetails}>
+            Select Dates
+            <input
+              name="from"
+              type="date"
+              value={this.state.dateFrom}
+              max={this.getToday()}
+              onChange={e => this.setState({ dateFrom: e.target.value })}
+            />
+            to
+            <input
+              name="to"
+              type="date"
+              value={this.state.dateTo}
+              min={this.state.dateFrom}
+              max={this.getToday()}
+              onChange={e => this.setState({ dateTo: e.target.value })}
+            />
+            <input type="submit" className="btn btn-info" value="Get" />
+          </form>
           <h4>
-            Customers Membership Ending Today:{this.state.todayMembershipEnding}
+            {this.state.CustomersAdded + " "}
+            Customers Added {this.state.message}
           </h4>
-          <h4>Games Issued Today:{this.state.todayIssued}</h4>
-          <h4>Games Returned Today:{this.state.todayReturn}</h4>
+          <h4>
+            {this.state.MembershipEnding + " "}
+            Customers Membership Ending {this.state.message}
+          </h4>
+          <h4>
+            {this.state.GamesIssued + " "}
+            Games Issued {this.state.message}
+          </h4>
+          <h4>
+            {this.state.GamesReturn + " "}
+            Games Returned {this.state.message}
+          </h4>
         </span>
         <hr />
         <br />
