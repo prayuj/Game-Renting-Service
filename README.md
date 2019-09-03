@@ -15,3 +15,7 @@ In a new terminal
 ### `cd frontend`
 ### `npm install`
 ### `npm start`
+
+## Login
+### Username: prayuj@gmail.com
+### Password: hello
