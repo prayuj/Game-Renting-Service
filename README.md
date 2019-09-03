@@ -1,11 +1,6 @@
 # Game-Renting-Service
 
-## Frontend
-### `cd frontend`
-### `npm install`
-### `npm start`
-
-## MongoDB
+## Load Data to MongoDB
 ### `mongorestore  dump/`
 
 ## Backend
@@ -14,3 +9,8 @@ Make sure Mongo is running at specific URI
 ### `npm install`
 ### `npm install -g nodemon`
 ### `nodemon server`
+
+## Frontend
+### `cd frontend`
+### `npm install`
+### `npm start`
