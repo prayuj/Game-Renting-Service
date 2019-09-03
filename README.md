@@ -11,6 +11,7 @@ Make sure Mongo is running at specific URI
 ### `nodemon server`
 
 ## Frontend
+In a new terminal
 ### `cd frontend`
 ### `npm install`
 ### `npm start`
