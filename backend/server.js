@@ -22,38 +22,38 @@ app.use("/customer", customerRoutes);
 app.use("/game", gameRoutes);
 app.use("/transaction", transactionRoutes);
 
-loginRoutes.route("/").post(function(req, res) {
-  Owner.findOne({ email: req.body.email }, "password", function(err, owner) {
+loginRoutes.route("/").post(function (req, res) {
+  Owner.findOne({ email: req.body.email }, "password", function (err, owner) {
     if (err) console.log(err);
     else {
-      bcrypt.compare(req.body.password, owner.password, function(err, resp) {
+      bcrypt.compare(req.body.password, owner.password, function (err, resp) {
         res.status(200).json({ isLoggedIn: resp });
       });
     }
   });
 });
 
-loginRoutes.route("/add").post(function(req, res) {
+loginRoutes.route("/add").post(function (req, res) {
   let email = req.body.email;
   let password = req.body.password;
-  bcrypt.hash(password, 10, function(err, hash) {
+  bcrypt.hash(password, 10, function (err, hash) {
     let owner = new Owner({ email: email, password: hash });
-    owner.save().then(resp => res.status(200).json({ status: "Added" }));
+    owner.save().then((resp) => res.status(200).json({ status: "Added" }));
   });
 });
 
-customerRoutes.route("/").get(function(req, res) {
+customerRoutes.route("/").get(function (req, res) {
   Customer.aggregate([
     {
-      $unwind: "$membership"
+      $unwind: "$membership",
     },
     {
       $lookup: {
         from: "transactions",
         localField: "_id",
         foreignField: "customer_id",
-        as: "transactions"
-      }
+        as: "transactions",
+      },
     },
     {
       $project: {
@@ -67,24 +67,24 @@ customerRoutes.route("/").get(function(req, res) {
               input: "$transactions",
               as: "transactions",
               cond: {
-                $eq: ["$$transactions.return", false]
-              }
-            }
-          }
-        }
-      }
+                $eq: ["$$transactions.return", false],
+              },
+            },
+          },
+        },
+      },
     },
     {
       $group: {
         _id: "$_id",
         noOfGames: {
-          $first: "$noOfGames"
+          $first: "$noOfGames",
         },
         name: { $first: "$name" },
         email: { $first: "$email" },
         dateOfJoin: { $first: "$dateOfJoin" },
         maxStart: {
-          $max: "$membership.start"
+          $max: "$membership.start",
         },
         noOfGames: { $first: "$noOfGames" },
         membership: {
@@ -93,10 +93,10 @@ customerRoutes.route("/").get(function(req, res) {
             plan: "$membership.plan",
             start: "$membership.start",
             end: "$membership.end",
-            active: "$membership.active"
-          }
-        }
-      }
+            active: "$membership.active",
+          },
+        },
+      },
     },
     {
       $project: {
@@ -114,35 +114,35 @@ customerRoutes.route("/").get(function(req, res) {
                 in: {
                   $cond: [
                     {
-                      $eq: ["$maxStart", "$$membership.start"]
+                      $eq: ["$maxStart", "$$membership.start"],
                     },
                     "$$membership",
-                    false
-                  ]
-                }
-              }
+                    false,
+                  ],
+                },
+              },
             },
-            [false]
-          ]
-        }
-      }
+            [false],
+          ],
+        },
+      },
     },
     {
-      $unwind: "$latestMembership"
+      $unwind: "$latestMembership",
     },
     {
       $sort: {
-        "latestMembership.end": 1
-      }
-    }
+        "latestMembership.end": 1,
+      },
+    },
   ])
-    .then(docs => res.status(200).json(docs))
-    .catch(err => res.status(500).json(err));
+    .then((docs) => res.status(200).json(docs))
+    .catch((err) => res.status(500).json(err));
 });
 
 customerRoutes
   .route("/CustomersAdded/from=:from&to=:to")
-  .get(function(req, res) {
+  .get(function (req, res) {
     let startDate = new Date(req.params.from);
     startDate.setHours(0, 0, 0, 0);
     let endDate = new Date(req.params.to);
@@ -151,8 +151,8 @@ customerRoutes
       {
         dateOfJoin: {
           $gte: startDate,
-          $lt: endDate
-        }
+          $lt: endDate,
+        },
       },
       (err, docs) => {
         if (err) console.log(err);
@@ -163,7 +163,7 @@ customerRoutes
 
 customerRoutes
   .route("/MembershipEnding/from=:from&to=:to")
-  .get(function(req, res) {
+  .get(function (req, res) {
     let startDate = new Date(req.params.from);
     startDate.setHours(0, 0, 0, 0);
     let endDate = new Date(req.params.to);
@@ -171,18 +171,18 @@ customerRoutes
 
     Customer.aggregate([
       {
-        $unwind: "$membership"
+        $unwind: "$membership",
       },
       {
         $project: {
-          membership: 1
-        }
+          membership: 1,
+        },
       },
       {
         $group: {
           _id: "$_id",
           maxStart: {
-            $max: "$membership.start"
+            $max: "$membership.start",
           },
           membership: {
             $push: {
@@ -190,10 +190,10 @@ customerRoutes
               plan: "$membership.plan",
               start: "$membership.start",
               end: "$membership.end",
-              active: "$membership.active"
-            }
-          }
-        }
+              active: "$membership.active",
+            },
+          },
+        },
       },
       {
         $project: {
@@ -207,36 +207,36 @@ customerRoutes
                   in: {
                     $cond: [
                       {
-                        $eq: ["$maxStart", "$$membership.start"]
+                        $eq: ["$maxStart", "$$membership.start"],
                       },
                       "$$membership",
-                      false
-                    ]
-                  }
-                }
+                      false,
+                    ],
+                  },
+                },
               },
-              [false]
-            ]
-          }
-        }
+              [false],
+            ],
+          },
+        },
       },
       {
-        $unwind: "$latestMembership"
+        $unwind: "$latestMembership",
       },
       {
         $match: {
           "latestMembership.end": {
             $gte: startDate,
-            $lt: endDate
-          }
-        }
-      }
+            $lt: endDate,
+          },
+        },
+      },
     ])
-      .then(docs => res.status(200).json({ MembershipEnding: docs.length }))
-      .catch(err => res.status(500).json(err));
+      .then((docs) => res.status(200).json({ MembershipEnding: docs.length }))
+      .catch((err) => res.status(500).json(err));
   });
 
-gameRoutes.route("/GamesIssued/from=:from&to=:to").get(function(req, res) {
+gameRoutes.route("/GamesIssued/from=:from&to=:to").get(function (req, res) {
   let startDate = new Date(req.params.from);
   startDate.setHours(0, 0, 0, 0);
   let endDate = new Date(req.params.to);
@@ -245,8 +245,8 @@ gameRoutes.route("/GamesIssued/from=:from&to=:to").get(function(req, res) {
     {
       date_issue: {
         $gte: startDate,
-        $lt: endDate
-      }
+        $lt: endDate,
+      },
     },
     (err, docs) => {
       if (err) console.log(err);
@@ -255,7 +255,7 @@ gameRoutes.route("/GamesIssued/from=:from&to=:to").get(function(req, res) {
   );
 });
 
-gameRoutes.route("/GamesReturn/from=:from&to=:to").get(function(req, res) {
+gameRoutes.route("/GamesReturn/from=:from&to=:to").get(function (req, res) {
   let startDate = new Date(req.params.from);
   startDate.setHours(0, 0, 0, 0);
   let endDate = new Date(req.params.to);
@@ -264,8 +264,8 @@ gameRoutes.route("/GamesReturn/from=:from&to=:to").get(function(req, res) {
     {
       date_return: {
         $gte: startDate,
-        $lt: endDate
-      }
+        $lt: endDate,
+      },
     },
     (err, docs) => {
       if (err) console.log(err);
@@ -274,7 +274,7 @@ gameRoutes.route("/GamesReturn/from=:from&to=:to").get(function(req, res) {
   );
 });
 
-gameRoutes.route("/").get(function(req, res) {
+gameRoutes.route("/").get(function (req, res) {
   Game.aggregate([
     {
       $project: {
@@ -283,9 +283,9 @@ gameRoutes.route("/").get(function(req, res) {
             $filter: {
               input: "$items",
               as: "item",
-              cond: { $eq: ["$$item.status", "Available"] }
-            }
-          }
+              cond: { $eq: ["$$item.status", "Available"] },
+            },
+          },
         },
         numberPS4Available: {
           $size: {
@@ -295,11 +295,11 @@ gameRoutes.route("/").get(function(req, res) {
               cond: {
                 $and: [
                   { $eq: ["$$item.status", "Available"] },
-                  { $eq: ["$$item.console", "PS4"] }
-                ]
-              }
-            }
-          }
+                  { $eq: ["$$item.console", "PS4"] },
+                ],
+              },
+            },
+          },
         },
         numberXBOXAvailable: {
           $size: {
@@ -309,32 +309,32 @@ gameRoutes.route("/").get(function(req, res) {
               cond: {
                 $and: [
                   { $eq: ["$$item.status", "Available"] },
-                  { $eq: ["$$item.console", "XBOX One"] }
-                ]
-              }
-            }
-          }
+                  { $eq: ["$$item.console", "XBOX One"] },
+                ],
+              },
+            },
+          },
         },
         _id: 1,
         name: 1,
         description: 1,
-        items: 1
-      }
+        items: 1,
+      },
     },
     {
       $sort: {
-        name: 1
-      }
-    }
+        name: 1,
+      },
+    },
   ])
-    .then(docu => res.status(200).json(docu))
-    .catch(err => res.status(500).json(err));
+    .then((docu) => res.status(200).json(docu))
+    .catch((err) => res.status(500).json(err));
 });
 
-customerRoutes.route("/dashboard").get(function(req, res) {
+customerRoutes.route("/dashboard").get(function (req, res) {
   Customer.aggregate([
     {
-      $unwind: "$membership"
+      $unwind: "$membership",
     },
     {
       $group: {
@@ -342,7 +342,7 @@ customerRoutes.route("/dashboard").get(function(req, res) {
         name: { $first: "$name" },
         email: { $first: "$email" },
         maxStart: {
-          $max: "$membership.start"
+          $max: "$membership.start",
         },
         membership: {
           $push: {
@@ -350,10 +350,10 @@ customerRoutes.route("/dashboard").get(function(req, res) {
             plan: "$membership.plan",
             start: "$membership.start",
             end: "$membership.end",
-            active: "$membership.active"
-          }
-        }
-      }
+            active: "$membership.active",
+          },
+        },
+      },
     },
     {
       $project: {
@@ -369,44 +369,44 @@ customerRoutes.route("/dashboard").get(function(req, res) {
                 in: {
                   $cond: [
                     {
-                      $eq: ["$maxStart", "$$membership.start"]
+                      $eq: ["$maxStart", "$$membership.start"],
                     },
                     "$$membership",
-                    false
-                  ]
-                }
-              }
+                    false,
+                  ],
+                },
+              },
             },
-            [false]
-          ]
-        }
-      }
+            [false],
+          ],
+        },
+      },
     },
     {
-      $unwind: "$latestMembership"
+      $unwind: "$latestMembership",
     },
     {
       $sort: {
-        "latestMembership.end": 1
-      }
+        "latestMembership.end": 1,
+      },
     },
     {
-      $limit: 5
-    }
+      $limit: 5,
+    },
   ])
-    .then(docs => res.status(200).json(docs))
-    .catch(err => res.status(500).json(err));
+    .then((docs) => res.status(200).json(docs))
+    .catch((err) => res.status(500).json(err));
 });
 
-gameRoutes.route("/dashboard/issue").get(function(req, res) {
+gameRoutes.route("/dashboard/issue").get(function (req, res) {
   Transaction.aggregate([
     {
       $lookup: {
         from: "customers",
         localField: "customer_id",
         foreignField: "_id",
-        as: "customerInfo"
-      }
+        as: "customerInfo",
+      },
     },
     { $unwind: "$customerInfo" },
     {
@@ -414,30 +414,30 @@ gameRoutes.route("/dashboard/issue").get(function(req, res) {
         from: "games",
         localField: "game_id",
         foreignField: "_id",
-        as: "gameInfo"
-      }
+        as: "gameInfo",
+      },
     },
     { $unwind: "$gameInfo" },
     { $unwind: "$gameInfo.items" },
     {
-      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
+      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } },
     },
     {
       $sort: {
-        date_issue: -1
-      }
+        date_issue: -1,
+      },
     },
     {
-      $limit: 5
-    }
+      $limit: 5,
+    },
   ])
-    .then(resp => {
+    .then((resp) => {
       res.status(200).json(resp);
     })
-    .catch(err => res.status(500).json(err));
+    .catch((err) => res.status(500).json(err));
 });
 
-gameRoutes.route("/dashboard/return").get(function(req, res) {
+gameRoutes.route("/dashboard/return").get(function (req, res) {
   Transaction.aggregate([
     { $match: { return: true } },
     {
@@ -445,8 +445,8 @@ gameRoutes.route("/dashboard/return").get(function(req, res) {
         from: "customers",
         localField: "customer_id",
         foreignField: "_id",
-        as: "customerInfo"
-      }
+        as: "customerInfo",
+      },
     },
     { $unwind: "$customerInfo" },
     {
@@ -454,38 +454,38 @@ gameRoutes.route("/dashboard/return").get(function(req, res) {
         from: "games",
         localField: "game_id",
         foreignField: "_id",
-        as: "gameInfo"
-      }
+        as: "gameInfo",
+      },
     },
     { $unwind: "$gameInfo" },
     { $unwind: "$gameInfo.items" },
     {
-      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
+      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } },
     },
     {
       $sort: {
-        date_return: -1
-      }
+        date_return: -1,
+      },
     },
     {
-      $limit: 5
-    }
+      $limit: 5,
+    },
   ])
-    .then(resp => {
+    .then((resp) => {
       res.status(200).json(resp);
     })
-    .catch(err => res.status(500).json(err));
+    .catch((err) => res.status(500).json(err));
 });
 
-customerRoutes.route("/:id").get(function(req, res) {
+customerRoutes.route("/:id").get(function (req, res) {
   let id = req.params.id;
   Customer.aggregate([
     { $match: { _id: mongoose.Types.ObjectId(id) } },
     { $unwind: "$membership" },
     {
       $sort: {
-        "membership.active": -1
-      }
+        "membership.active": -1,
+      },
     },
     {
       $group: {
@@ -499,15 +499,15 @@ customerRoutes.route("/:id").get(function(req, res) {
         mobile_no: { $first: "$mobile_no" },
         alt_mobile_no: { $first: "$alt_mobile_no" },
         city: { $first: "$city" },
-        zip: { $first: "$zip" }
-      }
-    }
+        zip: { $first: "$zip" },
+      },
+    },
   ])
-    .then(docs => res.status(200).json(docs[0]))
-    .catch(err => res.status(400).json(err));
+    .then((docs) => res.status(200).json(docs[0]))
+    .catch((err) => res.status(400).json(err));
 });
 
-gameRoutes.route("/:id").get(function(req, res) {
+gameRoutes.route("/:id").get(function (req, res) {
   let id = req.params.id;
   Game.aggregate([
     {
@@ -517,9 +517,9 @@ gameRoutes.route("/:id").get(function(req, res) {
             $filter: {
               input: "$items",
               as: "item",
-              cond: { $eq: ["$$item.status", "Available"] }
-            }
-          }
+              cond: { $eq: ["$$item.status", "Available"] },
+            },
+          },
         },
         numberPS4Available: {
           $size: {
@@ -529,11 +529,11 @@ gameRoutes.route("/:id").get(function(req, res) {
               cond: {
                 $and: [
                   { $eq: ["$$item.status", "Available"] },
-                  { $eq: ["$$item.console", "PS4"] }
-                ]
-              }
-            }
-          }
+                  { $eq: ["$$item.console", "PS4"] },
+                ],
+              },
+            },
+          },
         },
         numberXBOXAvailable: {
           $size: {
@@ -543,76 +543,76 @@ gameRoutes.route("/:id").get(function(req, res) {
               cond: {
                 $and: [
                   { $eq: ["$$item.status", "Available"] },
-                  { $eq: ["$$item.console", "XBOX One"] }
-                ]
-              }
-            }
-          }
+                  { $eq: ["$$item.console", "XBOX One"] },
+                ],
+              },
+            },
+          },
         },
         _id: 1,
         name: 1,
         description: 1,
-        items: 1
-      }
+        items: 1,
+      },
     },
     {
       $match: {
-        _id: mongoose.Types.ObjectId(id)
-      }
-    }
+        _id: mongoose.Types.ObjectId(id),
+      },
+    },
   ])
-    .then(docu => res.status(200).json(docu[0]))
-    .catch(err => res.status(500).json(err));
+    .then((docu) => res.status(200).json(docu[0]))
+    .catch((err) => res.status(500).json(err));
 });
 
-customerRoutes.route("/history/:id").get(function(req, res) {
+customerRoutes.route("/history/:id").get(function (req, res) {
   let id = req.params.id;
   Transaction.aggregate([
     {
       $match: {
-        customer_id: mongoose.Types.ObjectId(id)
-      }
+        customer_id: mongoose.Types.ObjectId(id),
+      },
     },
     {
       $lookup: {
         from: "games",
         localField: "game_id",
         foreignField: "_id",
-        as: "gameInfo"
-      }
+        as: "gameInfo",
+      },
     },
     { $unwind: "$gameInfo" },
     { $unwind: "$gameInfo.items" },
     {
-      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
+      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } },
     },
     {
       $sort: {
-        date_issue: -1
-      }
-    }
+        date_issue: -1,
+      },
+    },
   ])
-    .then(resp => {
+    .then((resp) => {
       res.status(200).json(resp);
     })
-    .catch(err => res.status(500).json(err));
+    .catch((err) => res.status(500).json(err));
 });
 
-gameRoutes.route("/history/:id").get(function(req, res) {
+gameRoutes.route("/history/:id").get(function (req, res) {
   let id = req.params.id;
   Transaction.aggregate([
     {
       $match: {
-        game_id: mongoose.Types.ObjectId(id)
-      }
+        game_id: mongoose.Types.ObjectId(id),
+      },
     },
     {
       $lookup: {
         from: "customers",
         localField: "customer_id",
         foreignField: "_id",
-        as: "customerInfo"
-      }
+        as: "customerInfo",
+      },
     },
     { $unwind: "$customerInfo" },
     {
@@ -620,36 +620,36 @@ gameRoutes.route("/history/:id").get(function(req, res) {
         from: "games",
         localField: "game_id",
         foreignField: "_id",
-        as: "gameInfo"
-      }
+        as: "gameInfo",
+      },
     },
     { $unwind: "$gameInfo" },
     { $unwind: "$gameInfo.items" },
     {
-      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
+      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } },
     },
     {
       $sort: {
-        date_issue: -1
-      }
-    }
+        date_issue: -1,
+      },
+    },
   ])
-    .then(resp => {
+    .then((resp) => {
       res.status(200).json(resp);
     })
-    .catch(err => res.status(500).json(err));
+    .catch((err) => res.status(500).json(err));
 });
 
-gameRoutes.route("/items/:id").get(function(req, res) {
+gameRoutes.route("/items/:id").get(function (req, res) {
   let id = req.params.id;
   Game.aggregate([
     {
       $match: {
-        _id: mongoose.Types.ObjectId(id)
-      }
+        _id: mongoose.Types.ObjectId(id),
+      },
     },
     {
-      $unwind: "$items"
+      $unwind: "$items",
     },
     {
       $addFields: {
@@ -657,50 +657,50 @@ gameRoutes.route("/items/:id").get(function(req, res) {
           $cond: [
             { $eq: ["$items.responsible", "Owner"] },
             "$items.responsible",
-            { $toObjectId: "$items.responsible" }
-          ]
-        }
-      }
+            { $toObjectId: "$items.responsible" },
+          ],
+        },
+      },
     },
     {
       $lookup: {
         from: "customers",
         localField: "convertedId",
         foreignField: "_id",
-        as: "customerInfo"
-      }
-    }
+        as: "customerInfo",
+      },
+    },
   ])
-    .then(resp => {
+    .then((resp) => {
       res.status(200).json(resp);
     })
-    .catch(err => res.status(500).json(err));
+    .catch((err) => res.status(500).json(err));
 });
 
-customerRoutes.route("/issue/:id").get(function(req, res) {
+customerRoutes.route("/issue/:id").get(function (req, res) {
   let id = mongoose.Types.ObjectId(req.params.id);
   console.log(id);
   Customer.aggregate([
     {
       $match: {
-        _id: id
-      }
+        _id: id,
+      },
     },
     {
-      $unwind: "$membership"
+      $unwind: "$membership",
     },
     {
       $match: {
-        "membership.active": true
-      }
+        "membership.active": true,
+      },
     },
     {
       $lookup: {
         from: "transactions",
         localField: "_id",
         foreignField: "customer_id",
-        as: "transactions"
-      }
+        as: "transactions",
+      },
     },
     {
       $project: {
@@ -712,31 +712,31 @@ customerRoutes.route("/issue/:id").get(function(req, res) {
               input: "$transactions",
               as: "transactions",
               cond: {
-                $eq: ["$$transactions.return", false]
-              }
-            }
-          }
-        }
-      }
+                $eq: ["$$transactions.return", false],
+              },
+            },
+          },
+        },
+      },
     },
     {
       $group: {
         _id: "$_id",
         plan: {
-          $first: "$membership.plan"
+          $first: "$membership.plan",
         },
         noOfGames: {
-          $first: "$noOfGames"
+          $first: "$noOfGames",
         },
-        name: { $first: "$name" }
-      }
-    }
-  ]).then(docs => res.status(200).json(docs[0]));
+        name: { $first: "$name" },
+      },
+    },
+  ]).then((docs) => res.status(200).json(docs[0]));
 });
 
 customerRoutes
   .route("/generate_otp/id=:id&mode=:mode&game=:game_id&console=:console")
-  .get(function(req, res) {
+  .get(function (req, res) {
     console.log(req.params.mode);
     let game_id = req.params.game_id;
     const secret = Speakeasy.generateSecret().base32;
@@ -751,7 +751,7 @@ customerRoutes
             let customer_name = docs.name;
             const token = Speakeasy.totp({
               secret: secret,
-              encoding: "base32"
+              encoding: "base32",
             });
             console.log(
               "Hi " +
@@ -768,7 +768,7 @@ customerRoutes
                 let game_name = docs.name;
                 const token = Speakeasy.totp({
                   secret: secret,
-                  encoding: "base32"
+                  encoding: "base32",
                 });
                 console.log(
                   "Hi " +
@@ -790,7 +790,7 @@ customerRoutes
     );
   });
 
-customerRoutes.route("/verify_otp/:id").post(function(req, res) {
+customerRoutes.route("/verify_otp/:id").post(function (req, res) {
   let id = req.params.id;
   let otp = req.body.otp;
   Customer.findById(id, (err, docs) => {
@@ -803,23 +803,23 @@ customerRoutes.route("/verify_otp/:id").post(function(req, res) {
         secret: secret,
         encoding: "base32",
         token: otp,
-        window: 5
+        window: 5,
       });
       res.status(200).json({
-        isVerify: isVerify
+        isVerify: isVerify,
       });
     }
   });
 });
 
-customerRoutes.route("/issue/:id").post(function(req, res) {
+customerRoutes.route("/issue/:id").post(function (req, res) {
   let customer_id = mongoose.Types.ObjectId(req.params.id);
   Game.find(
     {
       _id: mongoose.Types.ObjectId(req.body.game_id),
       items: {
-        $elemMatch: { console: req.body.console, status: "Available" }
-      }
+        $elemMatch: { console: req.body.console, status: "Available" },
+      },
     },
     { "items.$": 1 },
     (err, documents) => {
@@ -832,15 +832,15 @@ customerRoutes.route("/issue/:id").post(function(req, res) {
         Game.findOneAndUpdate(
           {
             _id: mongoose.Types.ObjectId(req.body.game_id),
-            "items._id": item_id
+            "items._id": item_id,
           },
           {
             $set: {
               "items.$.status": "Unavailable",
-              "items.$.responsible": customer_id
-            }
+              "items.$.responsible": customer_id,
+            },
           },
-          function(err, doc) {
+          function (err, doc) {
             if (err) console.log(err);
             else {
               let document_to_insert = {
@@ -848,16 +848,16 @@ customerRoutes.route("/issue/:id").post(function(req, res) {
                 game_id: req.body.game_id,
                 item_id: item_id,
                 date_issue: new Date(),
-                return: false
+                return: false,
               };
               let transaction = new Transaction(document_to_insert);
               console.log(JSON.stringify(document_to_insert));
               transaction
                 .save()
-                .then(game => {
+                .then((game) => {
                   res.status(200).json({ game: transaction._id });
                 })
-                .catch(err => {
+                .catch((err) => {
                   res.status(400).json(err);
                 });
             }
@@ -870,14 +870,14 @@ customerRoutes.route("/issue/:id").post(function(req, res) {
   );
 });
 
-gameRoutes.route("/issue/get").get(function(req, res) {
+gameRoutes.route("/issue/get").get(function (req, res) {
   Game.find(
     { "items.status": "Available" },
     "_id name",
     {
       sort: {
-        name: 1
-      }
+        name: 1,
+      },
     },
     (err, doc) => {
       res.status(200).json(doc);
@@ -885,68 +885,68 @@ gameRoutes.route("/issue/get").get(function(req, res) {
   );
 });
 
-customerRoutes.route("/return/all").get(function(req, res) {
+customerRoutes.route("/return/all").get(function (req, res) {
   let id = req.params.id;
   Transaction.aggregate([
     {
       $match: {
-        return: false
-      }
+        return: false,
+      },
     },
     {
       $lookup: {
         from: "games",
         localField: "game_id",
         foreignField: "_id",
-        as: "gameInfo"
-      }
+        as: "gameInfo",
+      },
     },
     {
       $lookup: {
         from: "customers",
         localField: "customer_id",
         foreignField: "_id",
-        as: "customerInfo"
-      }
+        as: "customerInfo",
+      },
     },
     { $unwind: "$gameInfo" },
     { $unwind: "$customerInfo" },
     { $unwind: "$gameInfo.items" },
     {
-      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
+      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } },
     },
     {
       $sort: {
-        date_issue: -1
-      }
-    }
+        date_issue: -1,
+      },
+    },
   ])
-    .then(resp => {
+    .then((resp) => {
       res.status(200).json(resp);
     })
-    .catch(err => res.status(500).json(err));
+    .catch((err) => res.status(500).json(err));
 });
 
-customerRoutes.route("/return/:id").get(function(req, res) {
+customerRoutes.route("/return/:id").get(function (req, res) {
   let id = req.params.id;
   Transaction.aggregate([
     {
       $match: {
-        customer_id: mongoose.Types.ObjectId(id)
-      }
+        customer_id: mongoose.Types.ObjectId(id),
+      },
     },
     {
       $match: {
-        return: false
-      }
+        return: false,
+      },
     },
     {
       $lookup: {
         from: "games",
         localField: "game_id",
         foreignField: "_id",
-        as: "gameInfo"
-      }
+        as: "gameInfo",
+      },
     },
 
     {
@@ -954,24 +954,24 @@ customerRoutes.route("/return/:id").get(function(req, res) {
         from: "customers",
         localField: "customer_id",
         foreignField: "_id",
-        as: "customerInfo"
-      }
+        as: "customerInfo",
+      },
     },
     { $unwind: "$gameInfo" },
 
     { $unwind: "$customerInfo" },
     { $unwind: "$gameInfo.items" },
     {
-      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } }
-    }
+      $match: { $expr: { $eq: ["$item_id", "$gameInfo.items._id"] } },
+    },
   ])
-    .then(resp => {
+    .then((resp) => {
       res.status(200).json(resp);
     })
-    .catch(err => res.status(500).json(err));
+    .catch((err) => res.status(500).json(err));
 });
 
-customerRoutes.route("/return").post(function(req, res) {
+customerRoutes.route("/return").post(function (req, res) {
   let transaction_id = req.body.transaction_id;
   let game_id = req.body.game_id;
   let item_id = req.body.item_id;
@@ -981,8 +981,8 @@ customerRoutes.route("/return").post(function(req, res) {
     {
       $set: {
         return: true,
-        date_return: new Date()
-      }
+        date_return: new Date(),
+      },
     },
     (err, doc) => {
       if (err) res.status(400).json({ status: "Unsuccesful" });
@@ -990,13 +990,13 @@ customerRoutes.route("/return").post(function(req, res) {
         Game.findOneAndUpdate(
           {
             _id: game_id,
-            "items._id": item_id
+            "items._id": item_id,
           },
           {
             $set: {
               "items.$.status": "Available",
-              "items.$.responsible": "Owner"
-            }
+              "items.$.responsible": "Owner",
+            },
           },
           (error, docu) => {
             if (error) res.status(400).json({ status: "Unsuccesful" });
@@ -1011,35 +1011,35 @@ customerRoutes.route("/return").post(function(req, res) {
   );
 });
 
-customerRoutes.route("/add").post(function(req, res) {
+customerRoutes.route("/add").post(function (req, res) {
   let customer = new Customer(req.body);
   customer
     .save()
-    .then(cust => {
+    .then((cust) => {
       res
         .status(200)
         .json({ cust: "customer added successfully " + customer._id });
     })
-    .catch(err => {
+    .catch((err) => {
       res.status(400).send("adding new customer failed");
     });
 });
 
-gameRoutes.route("/add").post(function(req, res) {
+gameRoutes.route("/add").post(function (req, res) {
   let game = new Game(req.body);
   game
     .save()
-    .then(game => {
+    .then((game) => {
       res.status(200).json({ game: "game added successfully " + game._id });
     })
-    .catch(err => {
+    .catch((err) => {
       res.status(400).send("adding new customer failed");
     });
 });
 
-customerRoutes.route("/update/:id").post(function(req, res) {
+customerRoutes.route("/update/:id").post(function (req, res) {
   console.log(req.body.city);
-  Customer.findById(req.params.id, function(err, cust) {
+  Customer.findById(req.params.id, function (err, cust) {
     if (!cust) res.status(404).send("data is not found");
     else {
       console.log(cust.city);
@@ -1055,135 +1055,135 @@ customerRoutes.route("/update/:id").post(function(req, res) {
 
       cust
         .save()
-        .then(cust => {
+        .then((cust) => {
           res.status(200).json("Customer updated!");
         })
-        .catch(err => {
+        .catch((err) => {
           res.status(400).send("Update not possible");
         });
     }
   });
 });
 
-gameRoutes.route("/update/:id").post(function(req, res) {
+gameRoutes.route("/update/:id").post(function (req, res) {
   console.log(req.body);
   Game.findOneAndUpdate(
     { _id: req.params.id },
     req.body,
     { upsert: true },
-    function(err, doc) {
+    function (err, doc) {
       if (err) return res.send(500, { error: err });
       return res.send("succesfully saved");
     }
   );
 });
 
-customerRoutes.route("/add_plan/:id").post(function(req, res) {
+customerRoutes.route("/add_plan/:id").post(function (req, res) {
   console.log(req.body);
   Customer.findOneAndUpdate(
     { _id: req.params.id },
     req.body,
     { upsert: true },
-    function(err, doc) {
+    function (err, doc) {
       if (err) return res.send(500, { error: err });
       return res.send("succesfully saved");
     }
   );
 });
 
-transactionRoutes.route("/").get(function(req, res) {
+transactionRoutes.route("/").get(function (req, res) {
   Transaction.aggregate([
     {
       $lookup: {
         from: "games",
         localField: "game_id",
         foreignField: "_id",
-        as: "gameInfo"
-      }
+        as: "gameInfo",
+      },
     },
     {
-      $unwind: "$gameInfo"
+      $unwind: "$gameInfo",
     },
     {
-      $unwind: "$gameInfo.items"
+      $unwind: "$gameInfo.items",
     },
     {
       $match: {
         $expr: {
-          $eq: ["$item_id", "$gameInfo.items._id"]
-        }
-      }
+          $eq: ["$item_id", "$gameInfo.items._id"],
+        },
+      },
     },
     {
       $lookup: {
         from: "customers",
         localField: "customer_id",
         foreignField: "_id",
-        as: "customerInfo"
-      }
+        as: "customerInfo",
+      },
     },
     {
-      $unwind: "$customerInfo"
+      $unwind: "$customerInfo",
     },
     {
       $sort: {
-        date_issue: -1
-      }
-    }
-  ]).then(docs => res.status(200).json(docs));
+        date_issue: -1,
+      },
+    },
+  ]).then((docs) => res.status(200).json(docs));
 });
 
-transactionRoutes.route("/get/:id").get(function(req, res) {
+transactionRoutes.route("/get/:id").get(function (req, res) {
   Transaction.aggregate([
     {
       $lookup: {
         from: "games",
         localField: "game_id",
         foreignField: "_id",
-        as: "gameInfo"
-      }
+        as: "gameInfo",
+      },
     },
     {
-      $unwind: "$gameInfo"
+      $unwind: "$gameInfo",
     },
     {
-      $unwind: "$gameInfo.items"
+      $unwind: "$gameInfo.items",
     },
     {
       $match: {
         $expr: {
-          $eq: ["$item_id", "$gameInfo.items._id"]
-        }
-      }
+          $eq: ["$item_id", "$gameInfo.items._id"],
+        },
+      },
     },
     {
       $lookup: {
         from: "customers",
         localField: "customer_id",
         foreignField: "_id",
-        as: "customerInfo"
-      }
+        as: "customerInfo",
+      },
     },
     {
-      $unwind: "$customerInfo"
+      $unwind: "$customerInfo",
     },
     {
       $match: {
-        _id: mongoose.Types.ObjectId(req.params.id)
-      }
+        _id: mongoose.Types.ObjectId(req.params.id),
+      },
     },
 
     {
       $sort: {
-        date_issue: -1
-      }
-    }
-  ]).then(docs => res.status(200).json(docs[0]));
+        date_issue: -1,
+      },
+    },
+  ]).then((docs) => res.status(200).json(docs[0]));
 });
 
 transactionRoutes
   .route("/dates/mode=:mode&from=:from&to=:to")
-  .get(function(req, res) {
+  .get(function (req, res) {
     console.log(req.params.from, req.params.to);
     let from = new Date(req.params.from);
     from.setHours(0, 0, 0, 0);
@@ -1195,18 +1195,18 @@ transactionRoutes
         $match: {
           date_issue: {
             $gte: from,
-            $lte: to
-          }
-        }
+            $lte: to,
+          },
+        },
       };
     else if (req.params.mode === "return")
       selector = {
         $match: {
           date_return: {
             $gte: from,
-            $lte: to
-          }
-        }
+            $lte: to,
+          },
+        },
       };
     Transaction.aggregate([
       {
@@ -1214,54 +1214,57 @@ transactionRoutes
           from: "games",
           localField: "game_id",
           foreignField: "_id",
-          as: "gameInfo"
-        }
+          as: "gameInfo",
+        },
       },
       {
-        $unwind: "$gameInfo"
+        $unwind: "$gameInfo",
       },
       {
-        $unwind: "$gameInfo.items"
+        $unwind: "$gameInfo.items",
       },
       {
         $match: {
           $expr: {
-            $eq: ["$item_id", "$gameInfo.items._id"]
-          }
-        }
+            $eq: ["$item_id", "$gameInfo.items._id"],
+          },
+        },
       },
       {
         $lookup: {
           from: "customers",
           localField: "customer_id",
           foreignField: "_id",
-          as: "customerInfo"
-        }
+          as: "customerInfo",
+        },
       },
       {
-        $unwind: "$customerInfo"
+        $unwind: "$customerInfo",
       },
       selector,
       {
         $sort: {
-          date_issue: -1
-        }
-      }
+          date_issue: -1,
+        },
+      },
     ])
-      .then(docs => res.status(200).json(docs))
-      .catch(err => console.log(err));
+      .then((docs) => res.status(200).json(docs))
+      .catch((err) => console.log(err));
   });
 
-mongoose.connect("mongodb://127.0.0.1:27017/gamerent", {
-  useNewUrlParser: true
-});
+mongoose.connect(
+  "mongodb+srv://prayuj:kiku1101@cluster0-fhx9a.mongodb.net/gamerent?retryWrites=true&w=majority",
+  {
+    useNewUrlParser: true,
+  }
+);
 const connection = mongoose.connection;
 
-connection.once("open", function() {
+connection.once("open", function () {
   console.log("MongoDB database connection established succesfully");
 });
 
-app.listen(PORT, function() {
+app.listen(PORT, function () {
   console.log("Server is running on Port: " + PORT);
 });
 
@@ -1271,14 +1274,14 @@ function updateMembership() {
   todayDate.setHours(24, 60, 60, 999);
   Customer.aggregate([
     {
-      $unwind: "$membership"
+      $unwind: "$membership",
     },
     {
       $match: {
-        "membership.active": true
-      }
-    }
-  ]).then(docs => {
+        "membership.active": true,
+      },
+    },
+  ]).then((docs) => {
     for (let i = 0; i < docs.length; i++) {
       let end_date = docs[i].membership.end;
       if (end_date.getTime() < todayDate.getTime()) {
@@ -1287,8 +1290,8 @@ function updateMembership() {
           { _id: docs[i]._id, "membership._id": docs[i].membership._id },
           {
             $set: {
-              "membership.$.active": false
-            }
+              "membership.$.active": false,
+            },
           },
           (error, res) => {
             if (error) console.log(error);
