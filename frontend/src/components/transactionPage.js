@@ -3,6 +3,8 @@ import axios from "axios";
 import { Redirect } from "react-router-dom";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
+import Toast from "react-bootstrap/Toast";
+import LoadingSpinner from "./loadingSpinner";
 
 class TransactionPage extends Component {
   constructor(props) {
@@ -11,7 +13,9 @@ class TransactionPage extends Component {
       id: props.match.params.id,
       redirect_to_customer: false,
       redirect_to_game: false,
-      modal_show: false
+      modal_show: false,
+      otp_issued: false,
+      verifying: false,
     };
     this.getTransactionDetails = this.getTransactionDetails.bind(this);
     this.handleClick = this.handleClick.bind(this);
@@ -23,25 +27,31 @@ class TransactionPage extends Component {
     this.getTransactionDetails();
   }
 
-  componentDidUpdate() {
-    this.getTransactionDetails();
-  }
-
   confirmReturn(e) {
     console.log(e.target.id);
     let ids = e.target.id.split(" ");
-    axios.get(
-      "http://localhost:4000/customer/generate_otp/id=" +
-        ids[3] +
-        "&mode=Returning" +
-        "&game=" +
-        ids[1] +
-        "&console=" +
-        ids[4]
-    );
+    this.setState({
+      otp_issued: false,
+      verifying: false,
+    });
+    axios
+      .get(
+        this.props.url +
+          "/customer/generate_otp/id=" +
+          ids[3] +
+          "&mode=Returning" +
+          "&game=" +
+          ids[1] +
+          "&console=" +
+          ids[4]
+      )
+      .then((res) => {
+        console.log(res.data);
+        this.setState({ message: res.data.message, otp_issued: true });
+      });
     this.setState({
       modal_show: true,
-      ids: ids
+      ids: ids,
     });
   }
 
@@ -53,10 +63,10 @@ class TransactionPage extends Component {
 
   getTransactionDetails() {
     axios
-      .get("http://localhost:4000/transaction/get/" + this.state.id)
-      .then(res => {
+      .get(this.props.url + "/transaction/get/" + this.state.id)
+      .then((res) => {
         this.setState({
-          data: res.data
+          data: res.data,
         });
       });
   }
@@ -72,17 +82,17 @@ class TransactionPage extends Component {
     return today + " (" + hours + ":" + minutes + " hrs)";
   }
 
-  setRedirect = e => {
+  setRedirect = (e) => {
     console.log(
       e.target.value === "Go to " + this.state.data.customerInfo.name
     );
     if (e.target.value === "Go to " + this.state.data.customerInfo.name)
       this.setState({
-        redirect_to_customer: true
+        redirect_to_customer: true,
       });
     else if (e.target.value === "Go to " + this.state.data.gameInfo.name)
       this.setState({
-        redirect_to_game: true
+        redirect_to_game: true,
       });
   };
 
@@ -101,26 +111,31 @@ class TransactionPage extends Component {
     e.preventDefault();
     console.log(e.target.otp.value);
     let id = this.state.ids;
+    this.setState({
+      verifying: true,
+    });
     axios
-      .post("http://localhost:4000/customer/verify_otp/" + id[3], {
-        otp: e.target.otp.value
+      .post(this.props.url + "/customer/verify_otp/" + id[3], {
+        otp: e.target.otp.value,
       })
-      .then(res => {
+      .then((res) => {
         console.log(res.data.isVerify);
         if (res.data.isVerify) {
           axios
-            .post("http://localhost:4000/customer/return/", {
+            .post(this.props.url + "/customer/return/", {
               transaction_id: id[0],
               game_id: id[1],
-              item_id: id[2]
+              item_id: id[2],
             })
-            .then(res => {
+            .then((res) => {
+              this.getTransactionDetails();
               this.setState({
-                modal_show: false
+                modal_show: false,
               });
             })
-            .catch(err => console.log(err));
+            .catch((err) => console.log(err));
         } else {
+          this.setState({ verifying: false });
           alert("Incorrect OTP, Issue again");
         }
       });
@@ -190,6 +205,16 @@ class TransactionPage extends Component {
                   Enter OTP
                   <input type="number" name="otp" />
                 </div>
+                {this.state.otp_issued ? (
+                  <Toast>
+                    <Toast.Header>
+                      <strong className="mr-auto">OTP</strong>
+                    </Toast.Header>
+                    <Toast.Body>{this.state.message}</Toast.Body>
+                  </Toast>
+                ) : (
+                  <LoadingSpinner></LoadingSpinner>
+                )}
               </Modal.Body>
 
               <Modal.Footer>
@@ -197,14 +222,23 @@ class TransactionPage extends Component {
                   Close
                 </Button>
                 <Button variant="primary" type="submit">
-                  Save changes
+                  {this.state.verifying ? (
+                    <LoadingSpinner></LoadingSpinner>
+                  ) : (
+                    "Verify"
+                  )}
                 </Button>
               </Modal.Footer>
             </form>
           </Modal>
         </div>
       );
-    else return <div>Let me Load</div>;
+    else
+      return (
+        <div>
+          Let me Load <LoadingSpinner></LoadingSpinner>
+        </div>
+      );
   }
 }
 

@@ -4,8 +4,8 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const Speakeasy = require("speakeasy");
-const bcrypt = require("bcrypt");
-const PORT = 4000;
+const bcrypt = require("bcryptjs");
+const PORT = process.env.PORT || 4000;
 const loginRoutes = express.Router();
 const customerRoutes = express.Router();
 const gameRoutes = express.Router();
@@ -25,10 +25,12 @@ app.use("/transaction", transactionRoutes);
 loginRoutes.route("/").post(function (req, res) {
   Owner.findOne({ email: req.body.email }, "password", function (err, owner) {
     if (err) console.log(err);
-    else {
+    else if (owner) {
       bcrypt.compare(req.body.password, owner.password, function (err, resp) {
         res.status(200).json({ isLoggedIn: resp });
       });
+    } else {
+      res.status(200).json({ isLoggedIn: false });
     }
   });
 });
@@ -760,6 +762,14 @@ customerRoutes
                 token +
                 " has been generated for updating your profile"
             );
+            res.status(200).json({
+              message:
+                "Hi " +
+                customer_name +
+                "! Your OTP " +
+                token +
+                " has been generated for updating your profile",
+            });
           } else {
             let customer_name = docs.name;
             Game.findById(game_id, (err, docs) => {
@@ -782,6 +792,19 @@ customerRoutes
                     ", " +
                     req.params.console
                 );
+                res.status(200).json({
+                  message:
+                    "Hi " +
+                    customer_name +
+                    "! Your OTP " +
+                    token +
+                    " has been generated for " +
+                    req.params.mode +
+                    " " +
+                    game_name +
+                    ", " +
+                    req.params.console,
+                });
               }
             });
           }
@@ -1253,7 +1276,7 @@ transactionRoutes
   });
 
 mongoose.connect(
-  "mongodb+srv://prayuj:kiku1101@cluster0-fhx9a.mongodb.net/gamerent?retryWrites=true&w=majority",
+  "mongodb://127.0.0.1:27017/gamerent",
   {
     useNewUrlParser: true,
   }
@@ -1264,7 +1287,7 @@ connection.once("open", function () {
   console.log("MongoDB database connection established succesfully");
 });
 
-app.listen(PORT, function () {
+app.listen(PORT, "0.0.0.0", function () {
   console.log("Server is running on Port: " + PORT);
 });
 

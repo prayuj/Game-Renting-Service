@@ -4,9 +4,9 @@ import { Route, Redirect } from "react-router-dom";
 export const PrivateRoute = ({ component: Component, ...rest }) => (
   <Route
     {...rest}
-    render={props =>
+    render={(props) =>
       localStorage.getItem("isLoggedIn") ? (
-        <Component {...props} />
+        <Component {...props} {...rest} />
       ) : (
         <Redirect
           to={{ pathname: "/login", state: { from: props.location } }}

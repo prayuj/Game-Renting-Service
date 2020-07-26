@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Game from "./game";
 import axios from "axios";
 import { Redirect } from "react-router-dom";
+import LoadingSpinner from "./loadingSpinner";
 
 class Games extends Component {
   constructor(props) {
@@ -12,7 +13,8 @@ class Games extends Component {
       ascendingName: true,
       ascendingAvailable: true,
       nameSortButtonValue: <span>&darr;</span>,
-      availableSortButtonValue: "Sort"
+      availableSortButtonValue: "Sort",
+      games_loaded: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.onClickForSort = this.onClickForSort.bind(this);
@@ -23,17 +25,18 @@ class Games extends Component {
   }
 
   getGames() {
-    axios.get("http://localhost:4000/game/").then(res => {
+    axios.get(this.props.url + "/game/").then((res) => {
       this.setState({
         games: res.data,
-        filtered: res.data
+        filtered: res.data,
+        games_loaded: true,
       });
     });
   }
 
   setRedirect = () => {
     this.setState({
-      redirect: true
+      redirect: true,
     });
   };
 
@@ -57,7 +60,7 @@ class Games extends Component {
 
       // Use .filter() to determine which items should be displayed
       // based on the search terms
-      newList = currentList.filter(item => {
+      newList = currentList.filter((item) => {
         // change current item to lowercase
         const lc = item.name.toLowerCase();
         // change search term to lowercase
@@ -75,7 +78,7 @@ class Games extends Component {
     }
     // Set the filtered state based on what our rules added to newList
     this.setState({
-      filtered: newList
+      filtered: newList,
     });
   }
 
@@ -115,7 +118,7 @@ class Games extends Component {
         games: games,
         ascendingName: !this.state.ascendingName,
         nameSortButtonValue: arrow,
-        availableSortButtonValue: "Sort"
+        availableSortButtonValue: "Sort",
       });
     }
     if (e.target.value === "Available") {
@@ -152,7 +155,7 @@ class Games extends Component {
         games: games,
         ascendingAvailable: !this.state.ascendingAvailable,
         availableSortButtonValue: arrow,
-        nameSortButtonValue: "Sort"
+        nameSortButtonValue: "Sort",
       });
     }
   }
@@ -173,56 +176,69 @@ class Games extends Component {
           placeholder="Search..."
           onChange={this.handleChange}
         />
-        <table className="table" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th style={{ paddingBottom: "1.3%" }}>Sr</th>
-              <th>
-                Name
-                <button
-                  className="btn btn-primary"
-                  value="Name"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.nameSortButtonValue}
-                </button>
-              </th>
-              <th style={{ paddingBottom: "1.3%" }}>Available In</th>
-              <th>
-                Number Available{" "}
-                <button
-                  className="btn btn-primary"
-                  value="Available"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.availableSortButtonValue}
-                </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.filtered.map((game, index) => (
-              <Game
-                mode="games"
-                _id={game._id}
-                sr={index + 1}
-                name={game.name}
-                availableIn={
-                  game.numberPS4Available > 0
-                    ? game.numberXBOXAvailable > 0
-                      ? ["PS4", "XBOX One"]
-                      : ["PS4"]
-                    : game.numberXBOXAvailable > 0
-                    ? ["XBOX One"]
-                    : ["Not Available"]
-                }
-                noAvailable={game.numberAvailable}
-              />
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive-xl">
+          <table className="table" style={{ marginTop: 20 }}>
+            <thead>
+              <tr>
+                <th style={{ paddingBottom: "1.3%" }}>Sr</th>
+                <th>
+                  Name
+                  <button
+                    className="btn btn-primary"
+                    value="Name"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.nameSortButtonValue}
+                  </button>
+                </th>
+                <th style={{ paddingBottom: "1.3%" }}>Available In</th>
+                <th>
+                  Number Available{" "}
+                  <button
+                    className="btn btn-primary"
+                    value="Available"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.availableSortButtonValue}
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.games_loaded ? (
+                this.state.filtered.map((game, index) => (
+                  <Game
+                    mode="games"
+                    _id={game._id}
+                    sr={index + 1}
+                    name={game.name}
+                    availableIn={
+                      game.numberPS4Available > 0
+                        ? game.numberXBOXAvailable > 0
+                          ? ["PS4", "XBOX One"]
+                          : ["PS4"]
+                        : game.numberXBOXAvailable > 0
+                        ? ["XBOX One"]
+                        : ["Not Available"]
+                    }
+                    noAvailable={game.numberAvailable}
+                  />
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="4"
+                    style={{ position: "relative", top: "50%", left: "50%" }}
+                  >
+                    <LoadingSpinner></LoadingSpinner>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }

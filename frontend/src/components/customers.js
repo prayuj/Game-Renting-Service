@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Customer from "./customer";
 import axios from "axios";
 import { Redirect } from "react-router-dom";
+import LoadingSpinner from "./loadingSpinner";
 
 class Customers extends Component {
   constructor(props) {
@@ -17,7 +18,8 @@ class Customers extends Component {
       nameSortButtonValue: "Sort",
       DOJSortButtonValue: "Sort",
       membershipEndSortButtonValue: <span>&darr;</span>,
-      noOfGamesSortButtonValue: "Sort"
+      noOfGamesSortButtonValue: "Sort",
+      customers_loaded: false,
     };
     this.getCustomers = this.getCustomers.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -29,10 +31,11 @@ class Customers extends Component {
   }
 
   getCustomers() {
-    axios.get("http://localhost:4000/customer/").then(res => {
+    axios.get(this.props.url + "/customer").then((res) => {
       this.setState({
         customers: res.data,
-        filtered: res.data
+        filtered: res.data,
+        customers_loaded: true,
       });
     });
   }
@@ -48,7 +51,7 @@ class Customers extends Component {
 
   setRedirect = () => {
     this.setState({
-      redirect: true
+      redirect: true,
     });
   };
 
@@ -74,7 +77,7 @@ class Customers extends Component {
 
       // Use .filter() to determine which items should be displayed
       // based on the search terms
-      firstList = currentList.filter(customer => {
+      firstList = currentList.filter((customer) => {
         // change current item to lowercase
         const lc = customer.name.toLowerCase();
         // change search term to lowercase
@@ -84,7 +87,7 @@ class Customers extends Component {
         // issues with capitalization in search terms and search content
         return lc.includes(filter);
       });
-      secondList = currentList.filter(customer => {
+      secondList = currentList.filter((customer) => {
         // change current item to lowercase
         const lc = customer.name.toLowerCase();
         // change search term to lowercase
@@ -111,7 +114,7 @@ class Customers extends Component {
     }
     // Set the filtered state based on what our rules added to newList
     this.setState({
-      filtered: newList
+      filtered: newList,
     });
   }
 
@@ -153,7 +156,7 @@ class Customers extends Component {
         nameSortButtonValue: arrow,
         DOJSortButtonValue: "Sort",
         membershipEndSortButtonValue: "Sort",
-        noOfGamesSortButtonValue: "Sort"
+        noOfGamesSortButtonValue: "Sort",
       });
     }
     if (e.target.value === "DOJ") {
@@ -192,7 +195,7 @@ class Customers extends Component {
         DOJSortButtonValue: arrow,
         nameSortButtonValue: "Sort",
         membershipEndSortButtonValue: "Sort",
-        noOfGamesSortButtonValue: "Sort"
+        noOfGamesSortButtonValue: "Sort",
       });
     }
     if (e.target.value === "Membership") {
@@ -231,7 +234,7 @@ class Customers extends Component {
         membershipEndSortButtonValue: arrow,
         nameSortButtonValue: "Sort",
         DOJSortButtonValue: "Sort",
-        noOfGamesSortButtonValue: "Sort"
+        noOfGamesSortButtonValue: "Sort",
       });
     }
     if (e.target.value === "No Of Games") {
@@ -270,7 +273,7 @@ class Customers extends Component {
         noOfGamesSortButtonValue: arrow,
         nameSortButtonValue: "Sort",
         DOJSortButtonValue: "Sort",
-        membershipEndSortButtonValue: "Sort"
+        membershipEndSortButtonValue: "Sort",
       });
     }
   }
@@ -292,77 +295,102 @@ class Customers extends Component {
           placeholder="Search..."
           onChange={this.handleChange}
         />
-        <table className="table" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th style={{ paddingBottom: "1.3%" }}>Sr</th>
-              <th>
-                Name
-                <button
-                  className="btn btn-primary"
-                  value="Name"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.nameSortButtonValue}
-                </button>
-              </th>
-              <th style={{ paddingBottom: "1.3%" }}>Email-ID</th>
-              <th>
-                Date Of Joining
-                <button
-                  className="btn btn-primary"
-                  value="DOJ"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.DOJSortButtonValue}
-                </button>
-              </th>
-              <th>
-                Membership Expiry
-                <button
-                  className="btn btn-primary"
-                  value="Membership"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.membershipEndSortButtonValue}
-                </button>
-              </th>
+        <div className="table-responsive-xl">
+          <table className="table" style={{ marginTop: "1em" }}>
+            <thead>
+              <tr>
+                <th style={{ paddingBottom: "1.3%" }}>Sr</th>
+                <th>
+                  Name
+                  <button
+                    className="btn btn-primary"
+                    value="Name"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.nameSortButtonValue}
+                  </button>
+                </th>
+                <th style={{ paddingBottom: "1.3%" }}>Email-ID</th>
+                <th>
+                  Date Of Joining
+                  <button
+                    className="btn btn-primary"
+                    value="DOJ"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.DOJSortButtonValue}
+                  </button>
+                </th>
+                <th>
+                  Membership Expiry
+                  <button
+                    className="btn btn-primary"
+                    value="Membership"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.membershipEndSortButtonValue}
+                  </button>
+                </th>
 
-              <th>
-                NoOfGames
-                <button
-                  className="btn btn-primary"
-                  value="No Of Games"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.noOfGamesSortButtonValue}
-                </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.filtered.map((filter, index) => (
-              <Customer
-                mode="customers"
-                id={filter._id}
-                sr={index + 1}
-                name={filter.name}
-                email={filter.email}
-                noOfGames={filter.noOfGames}
-                dateOfJoin={this.convertDate(filter.dateOfJoin)}
-                dateOfMembershipEnd={
-                  filter.latestMembership.active
-                    ? this.convertDate(filter.latestMembership.end)
-                    : "Expired Membership"
-                }
-              />
-            ))}
-          </tbody>
-        </table>
+                <th>
+                  NoOfGames
+                  <button
+                    className="btn btn-primary"
+                    value="No Of Games"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.noOfGamesSortButtonValue}
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.customers_loaded ? (
+                this.state.filtered.length > 0 ? (
+                  this.state.filtered.map((filter, index) => (
+                    <Customer
+                      mode="customers"
+                      id={filter._id}
+                      sr={index + 1}
+                      name={filter.name}
+                      email={filter.email}
+                      noOfGames={filter.noOfGames}
+                      dateOfJoin={this.convertDate(filter.dateOfJoin)}
+                      dateOfMembershipEnd={
+                        filter.latestMembership.active
+                          ? this.convertDate(filter.latestMembership.end)
+                          : "Expired Membership"
+                      }
+                      url={this.props.url}
+                    />
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      style={{ position: "relative", top: "50%", left: "50%" }}
+                    >
+                      Nothing to show!
+                    </td>
+                  </tr>
+                )
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    style={{ position: "relative", top: "50%", left: "50%" }}
+                  >
+                    <LoadingSpinner></LoadingSpinner>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }

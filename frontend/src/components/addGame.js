@@ -16,10 +16,10 @@ class AddGame extends Component {
           console: "",
           id: 1,
           serial: "",
-          mrp: ""
-        }
+          mrp: "",
+        },
       ],
-      count: 1
+      count: 1,
     };
     this.onAdd = this.onAdd.bind(this);
     this.onDelete = this.onDelete.bind(this);
@@ -32,12 +32,12 @@ class AddGame extends Component {
       id: this.state.count + 1,
       serial: "",
       console: "",
-      mrp: ""
+      mrp: "",
     });
     console.log(temp_game_properties);
     this.setState({
       game_properties: temp_game_properties,
-      count: this.state.count + 1
+      count: this.state.count + 1,
     });
   }
 
@@ -54,7 +54,7 @@ class AddGame extends Component {
     }
     console.log(temp_game_properties);
     this.setState({
-      game_properties: temp_game_properties
+      game_properties: temp_game_properties,
     });
   }
 
@@ -77,7 +77,7 @@ class AddGame extends Component {
         status: "Available",
         responsible: "Owner",
         mrp: mrp,
-        description: "Test"
+        description: "Test",
       });
 
       console.log(items[i]);
@@ -86,18 +86,18 @@ class AddGame extends Component {
     const newGame = {
       name: e.target.name.value,
       description: e.target.description.value,
-      items: items
+      items: items,
     };
 
     axios
-      .post("http://localhost:4000/game/add", newGame)
-      .then(res => {
+      .post(this.props.url + "/game/add", newGame)
+      .then((res) => {
         console.log(res.data);
         this.setState({
-          redirect_to_dashboard: true
+          redirect_to_dashboard: true,
         });
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
 
     this.setState({
       game_name: "",
@@ -108,10 +108,10 @@ class AddGame extends Component {
           id: 1,
           serial: "",
           console: "",
-          mrp: ""
-        }
+          mrp: "",
+        },
       ],
-      count: 1
+      count: 1,
     });
   }
 

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import axios from "axios";
 import Transaction from "./transaction";
+import LoadingSpinner from "./loadingSpinner";
 
 class Transactions extends Component {
   constructor(props) {
@@ -19,7 +20,8 @@ class Transactions extends Component {
       dateIssueFrom: "",
       dateIssueTo: "",
       dateReturnFrom: "",
-      dateReturnTo: ""
+      dateReturnTo: "",
+      transactions_loaded: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.getTransactions = this.getTransactions.bind(this);
@@ -35,12 +37,13 @@ class Transactions extends Component {
       dateIssueFrom: "",
       dateIssueTo: "",
       dateReturnFrom: "",
-      dateReturnTo: ""
+      dateReturnTo: "",
     });
-    axios.get("http://localhost:4000/transaction").then(res =>
+    axios.get(this.props.url + "/transaction").then((res) =>
       this.setState({
         transactions: res.data,
-        filtered: res.data
+        filtered: res.data,
+        transactions_loaded: true,
       })
     );
   }
@@ -69,7 +72,7 @@ class Transactions extends Component {
 
       // Use .filter() to determine which items should be displayed
       // based on the search terms
-      firstList = currentList.filter(item => {
+      firstList = currentList.filter((item) => {
         // change current item to lowercase
         const lc = item.gameInfo.name.toLowerCase();
         // change search term to lowercase
@@ -79,7 +82,7 @@ class Transactions extends Component {
         // issues with capitalization in search terms and search content
         return lc.includes(filter);
       });
-      secondList = currentList.filter(item => {
+      secondList = currentList.filter((item) => {
         // change current item to lowercase
         const lc = item.customerInfo.name.toLowerCase();
         // change search term to lowercase
@@ -98,7 +101,7 @@ class Transactions extends Component {
     }
     // Set the filtered state based on what our rules added to newList
     this.setState({
-      filtered: newList
+      filtered: newList,
     });
   }
   onClickForSort(e) {
@@ -137,7 +140,7 @@ class Transactions extends Component {
         customerNameSortButtonValue: arrow,
         gameNameSortButtonValue: "Sort",
         dateIssueButtonValue: "Sort",
-        dateReturnButtonValue: "Sort"
+        dateReturnButtonValue: "Sort",
       });
     }
     if (e.target.value === "Game Name") {
@@ -175,7 +178,7 @@ class Transactions extends Component {
         gameNameSortButtonValue: arrow,
         customerNameSortButtonValue: "Sort",
         dateIssueButtonValue: "Sort",
-        dateReturnButtonValue: "Sort"
+        dateReturnButtonValue: "Sort",
       });
     }
     if (e.target.value === "Date Issue") {
@@ -213,7 +216,7 @@ class Transactions extends Component {
         dateIssueButtonValue: arrow,
         customerNameSortButtonValue: "Sort",
         gameNameSortButtonValue: "Sort",
-        dateReturnButtonValue: "Sort"
+        dateReturnButtonValue: "Sort",
       });
     }
     if (e.target.value === "Date Return") {
@@ -285,7 +288,7 @@ class Transactions extends Component {
         dateReturnButtonValue: arrow,
         customerNameSortButtonValue: "Sort",
         gameNameSortButtonValue: "Sort",
-        gameNameSortButtonValue: "Sort"
+        gameNameSortButtonValue: "Sort",
       });
     }
   }
@@ -295,15 +298,16 @@ class Transactions extends Component {
     if (e.target.from.value !== "" && e.target.to.value !== "") {
       axios
         .get(
-          "http://localhost:4000/transaction/dates/mode=issue&from=" +
+          this.props.url +
+            "/transaction/dates/mode=issue&from=" +
             e.target.from.value +
             "&to=" +
             e.target.to.value
         )
-        .then(res =>
+        .then((res) =>
           this.setState({
             transactions: res.data,
-            filtered: res.data
+            filtered: res.data,
           })
         );
     }
@@ -314,15 +318,16 @@ class Transactions extends Component {
     if (e.target.from.value !== "" && e.target.to.value !== "") {
       axios
         .get(
-          "http://localhost:4000/transaction/dates/mode=return&from=" +
+          this.props.url +
+            "/transaction/dates/mode=return&from=" +
             e.target.from.value +
             "&to=" +
             e.target.to.value
         )
-        .then(res =>
+        .then((res) =>
           this.setState({
             transactions: res.data,
-            filtered: res.data
+            filtered: res.data,
           })
         );
     }
@@ -352,7 +357,7 @@ class Transactions extends Component {
             type="date"
             value={this.state.dateIssueFrom}
             max={this.getToday()}
-            onChange={e => this.setState({ dateIssueFrom: e.target.value })}
+            onChange={(e) => this.setState({ dateIssueFrom: e.target.value })}
           />
           to
           <input
@@ -361,7 +366,7 @@ class Transactions extends Component {
             value={this.state.dateIssueTo}
             min={this.state.dateIssueFrom}
             max={this.getToday()}
-            onChange={e => this.setState({ dateIssueTo: e.target.value })}
+            onChange={(e) => this.setState({ dateIssueTo: e.target.value })}
           />
           <input type="submit" className="btn btn-info" value="Get" />
         </form>
@@ -373,7 +378,7 @@ class Transactions extends Component {
             type="date"
             max={this.getToday()}
             value={this.state.dateReturnFrom}
-            onChange={e => this.setState({ dateReturnFrom: e.target.value })}
+            onChange={(e) => this.setState({ dateReturnFrom: e.target.value })}
           />
           to
           <input
@@ -382,7 +387,7 @@ class Transactions extends Component {
             value={this.state.dateReturnTo}
             min={this.state.dateReturnFrom}
             max={this.getToday()}
-            onChange={e => this.setState({ dateReturnTo: e.target.value })}
+            onChange={(e) => this.setState({ dateReturnTo: e.target.value })}
           />
           <input type="submit" className="btn btn-info" value="Get" />
         </form>
@@ -392,74 +397,87 @@ class Transactions extends Component {
           value="Show all"
           onClick={this.getTransactions}
         />
-        <table className="table" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th style={{ paddingBottom: "1.3%" }}>Sr</th>
-              <th style={{ paddingBottom: "1.3%" }}>Transaction ID</th>
-              <th>
-                Member Name{" "}
-                <button
-                  className="btn btn-primary"
-                  value="Customer Name"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.customerNameSortButtonValue}
-                </button>
-              </th>
-              <th>
-                Game Name{" "}
-                <button
-                  className="btn btn-primary"
-                  value="Game Name"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.gameNameSortButtonValue}
-                </button>
-              </th>
-              <th>
-                Date Issue{" "}
-                <button
-                  className="btn btn-primary"
-                  value="Date Issue"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.dateIssueButtonValue}
-                </button>
-              </th>
-              <th>
-                Date Return
-                <button
-                  className="btn btn-primary"
-                  value="Date Return"
-                  onClick={this.onClickForSort}
-                  style={{ "margin-left": "5%" }}
-                >
-                  {this.state.dateReturnButtonValue}
-                </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.filtered.map((transaction, index) => (
-              <Transaction
-                index={index + 1}
-                id={transaction._id}
-                game_name={transaction.gameInfo.name}
-                customer_name={transaction.customerInfo.name}
-                date_issue={this.convertDate(transaction.date_issue)}
-                date_return={
-                  transaction.return
-                    ? this.convertDate(transaction.date_return)
-                    : "Not Returned"
-                }
-              />
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive-xl">
+          <table className="table" style={{ marginTop: 20 }}>
+            <thead>
+              <tr>
+                <th style={{ paddingBottom: "1.3%" }}>Sr</th>
+                <th style={{ paddingBottom: "1.3%" }}>Transaction ID</th>
+                <th>
+                  Member Name{" "}
+                  <button
+                    className="btn btn-primary"
+                    value="Customer Name"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.customerNameSortButtonValue}
+                  </button>
+                </th>
+                <th>
+                  Game Name{" "}
+                  <button
+                    className="btn btn-primary"
+                    value="Game Name"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.gameNameSortButtonValue}
+                  </button>
+                </th>
+                <th>
+                  Date Issue{" "}
+                  <button
+                    className="btn btn-primary"
+                    value="Date Issue"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.dateIssueButtonValue}
+                  </button>
+                </th>
+                <th>
+                  Date Return
+                  <button
+                    className="btn btn-primary"
+                    value="Date Return"
+                    onClick={this.onClickForSort}
+                    style={{ "margin-left": "5%" }}
+                  >
+                    {this.state.dateReturnButtonValue}
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.transactions_loaded ? (
+                this.state.filtered.map((transaction, index) => (
+                  <Transaction
+                    index={index + 1}
+                    id={transaction._id}
+                    game_name={transaction.gameInfo.name}
+                    customer_name={transaction.customerInfo.name}
+                    date_issue={this.convertDate(transaction.date_issue)}
+                    date_return={
+                      transaction.return
+                        ? this.convertDate(transaction.date_return)
+                        : "Not Returned"
+                    }
+                  />
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    style={{ position: "relative", top: "50%", left: "50%" }}
+                  >
+                    <LoadingSpinner></LoadingSpinner>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }

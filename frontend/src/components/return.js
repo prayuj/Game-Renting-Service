@@ -3,6 +3,8 @@ import axios from "axios";
 import { Redirect } from "react-router-dom";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
+import Toast from "react-bootstrap/Toast";
+import LoadingSpinner from "./loadingSpinner";
 
 class Return extends Component {
   constructor(props) {
@@ -12,7 +14,6 @@ class Return extends Component {
       this.state = {
         mode: "customer",
         id: props.match.params.id,
-        show: false,
         filtered: [],
         modal_show: false,
         ascendingCustomerName: true,
@@ -20,13 +21,15 @@ class Return extends Component {
         ascendingDateIssue: true,
         customerNameSortButtonValue: "Sort",
         gameNameSortButtonValue: "Sort",
-        dateIssueButtonValue: <span>&darr;</span>
+        dateIssueButtonValue: <span>&darr;</span>,
+        otp_issued: false,
+        verifying: false,
+        games_to_return_loaded: false,
       };
     } else {
       this.state = {
         mode: "dashboard",
         id: "all",
-        show: false,
         filtered: [],
         modal_show: false,
         ascendingCustomerName: true,
@@ -34,7 +37,10 @@ class Return extends Component {
         ascendingDateIssue: true,
         customerNameSortButtonValue: "Sort",
         gameNameSortButtonValue: "Sort",
-        dateIssueButtonValue: <span>&darr;</span>
+        dateIssueButtonValue: <span>&darr;</span>,
+        otp_issued: false,
+        verifying: false,
+        games_to_return_loaded: false,
       };
     }
 
@@ -54,7 +60,7 @@ class Return extends Component {
       this.setState(
         {
           mode: this.props.match.params.mode,
-          id: this.props.match.params.id
+          id: this.props.match.params.id,
         },
         () => {
           this.getCustomerDetail();
@@ -64,19 +70,29 @@ class Return extends Component {
   }
   confirmReturn(e) {
     console.log(e.target.id);
+    this.setState({
+      otp_issued: false,
+      verifying: false,
+    });
     let ids = e.target.id.split(" ");
-    axios.get(
-      "http://localhost:4000/customer/generate_otp/id=" +
-        ids[3] +
-        "&mode=Returning" +
-        "&game=" +
-        ids[1] +
-        "&console=" +
-        ids[4]
-    );
+    axios
+      .get(
+        this.props.url +
+          "/customer/generate_otp/id=" +
+          ids[3] +
+          "&mode=Returning" +
+          "&game=" +
+          ids[1] +
+          "&console=" +
+          ids[4]
+      )
+      .then((res) => {
+        console.log(res.data);
+        this.setState({ message: res.data.message, otp_issued: true });
+      });
     this.setState({
       modal_show: true,
-      ids: ids
+      ids: ids,
     });
   }
 
@@ -87,22 +103,17 @@ class Return extends Component {
   }
   getCustomerDetail() {
     axios
-      .get("http://localhost:4000/customer/return/" + this.state.id)
-      .then(res => {
+      .get(this.props.url + "/customer/return/" + this.state.id)
+      .then((res) => {
         console.log(res.data);
-        if (res.data.length != 0)
-          this.setState({
-            games_to_return: res.data,
-            filtered: res.data,
-            show: true
-          });
-        else {
-          this.setState({
-            show: false
-          });
-        }
+        this.setState({
+          games_to_return: res.data,
+          filtered: res.data,
+          show: true,
+          games_to_return_loaded: true,
+        });
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
   }
 
   handleChange(e) {
@@ -122,7 +133,7 @@ class Return extends Component {
 
       // Use .filter() to determine which items should be displayed
       // based on the search terms
-      firstList = currentList.filter(item => {
+      firstList = currentList.filter((item) => {
         // change current item to lowercase
         const lc = item.gameInfo.name.toLowerCase();
         // change search term to lowercase
@@ -132,7 +143,7 @@ class Return extends Component {
         // issues with capitalization in search terms and search content
         return lc.includes(filter);
       });
-      secondList = currentList.filter(item => {
+      secondList = currentList.filter((item) => {
         // change current item to lowercase
         const lc = item.customerInfo.name.toLowerCase();
         // change search term to lowercase
@@ -152,7 +163,7 @@ class Return extends Component {
     console.log(newList);
     // Set the filtered state based on what our rules added to newList
     this.setState({
-      filtered: newList
+      filtered: newList,
     });
   }
 
@@ -170,31 +181,35 @@ class Return extends Component {
   handleClick(e) {
     e.preventDefault();
     console.log(e.target.otp.value);
+    this.setState({
+      verifying: true,
+    });
     let id = this.state.ids;
     axios
-      .post("http://localhost:4000/customer/verify_otp/" + id[3], {
-        otp: e.target.otp.value
+      .post(this.props.url + "/customer/verify_otp/" + id[3], {
+        otp: e.target.otp.value,
       })
-      .then(res => {
+      .then((res) => {
         console.log(res.data.isVerify);
         if (res.data.isVerify) {
           axios
-            .post("http://localhost:4000/customer/return/", {
+            .post(this.props.url + "/customer/return/", {
               transaction_id: id[0],
               game_id: id[1],
-              item_id: id[2]
+              item_id: id[2],
             })
-            .then(res => {
+            .then((res) => {
               console.log(res.data);
               this.getCustomerDetail();
               this.setState({
                 modal_show: false,
-                transactionid: id[0]
+                transactionid: id[0],
               });
               this.setRedirect();
             })
-            .catch(err => console.log(err));
+            .catch((err) => console.log(err));
         } else {
+          this.setState({ verifying: false });
           alert("Incorrect OTP, Issue again");
         }
       });
@@ -236,7 +251,7 @@ class Return extends Component {
         ascendingCustomerName: !this.state.ascendingCustomerName,
         customerNameSortButtonValue: arrow,
         gameNameSortButtonValue: "Sort",
-        dateIssueButtonValue: "Sort"
+        dateIssueButtonValue: "Sort",
       });
     }
     if (e.target.value === "Game Name") {
@@ -274,7 +289,7 @@ class Return extends Component {
         ascendingGameName: !this.state.ascendingGameName,
         gameNameSortButtonValue: arrow,
         customerNameSortButtonValue: "Sort",
-        dateIssueButtonValue: "Sort"
+        dateIssueButtonValue: "Sort",
       });
     }
     if (e.target.value === "Date Issue") {
@@ -311,14 +326,14 @@ class Return extends Component {
         ascendingDateIssue: !this.state.ascendingDateIssue,
         dateIssueButtonValue: arrow,
         customerNameSortButtonValue: "Sort",
-        gameNameSortButtonValue: "Sort"
+        gameNameSortButtonValue: "Sort",
       });
     }
   }
 
   setRedirect = () => {
     this.setState({
-      redirect_to_transaction: true
+      redirect_to_transaction: true,
     });
   };
 
@@ -328,43 +343,55 @@ class Return extends Component {
     }
   };
   render() {
-    if (this.state.show) {
-      let games = this.state.filtered.map((game, index) => (
+    let games =
+      this.state.filtered.length > 0 ? (
+        this.state.filtered.map((game, index) => (
+          <tr>
+            <td>{index + 1}</td>
+            <td>{game.customerInfo.name}</td>
+            <td>{game.gameInfo.name}</td>
+            <td>{game.gameInfo.items.console}</td>
+            <td>{game.gameInfo.items.serial_no}</td>
+            <td>{this.convertDate(game.date_issue)}</td>
+            <input
+              type="button"
+              value="Return"
+              className="btn btn-primary"
+              onClick={this.confirmReturn}
+              id={
+                game._id +
+                " " +
+                game.game_id +
+                " " +
+                game.item_id +
+                " " +
+                game.customer_id +
+                " " +
+                game.gameInfo.items.console
+              }
+            />
+          </tr>
+        ))
+      ) : (
         <tr>
-          <td>{index + 1}</td>
-          <td>{game.customerInfo.name}</td>
-          <td>{game.gameInfo.name}</td>
-          <td>{game.gameInfo.items.console}</td>
-          <td>{game.gameInfo.items.serial_no}</td>
-          <td>{this.convertDate(game.date_issue)}</td>
-          <input
-            type="button"
-            value="Return"
-            className="btn btn-primary"
-            onClick={this.confirmReturn}
-            id={
-              game._id +
-              " " +
-              game.game_id +
-              " " +
-              game.item_id +
-              " " +
-              game.customer_id +
-              " " +
-              game.gameInfo.items.console
-            }
-          />
+          <td
+            colSpan="7"
+            style={{ position: "relative", top: "50%", left: "50%" }}
+          >
+            Nothing to Show!
+          </td>
         </tr>
-      ));
-      return (
-        <div>
-          {this.renderRedirect()}
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search..."
-            onChange={this.handleChange}
-          />
+      );
+    return (
+      <div>
+        {this.renderRedirect()}
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Search..."
+          onChange={this.handleChange}
+        />
+        <div className="table-responsive-xl">
           <table className="table" style={{ marginTop: 20 }}>
             <thead>
               <tr>
@@ -407,7 +434,21 @@ class Return extends Component {
                 <th>Return</th>
               </tr>
             </thead>
-            <tbody>{games}</tbody>
+            <tbody>
+              {this.state.games_to_return_loaded ? (
+                games
+              ) : (
+                <tr>
+                  <td
+                    colSpan="7"
+                    style={{ position: "relative", top: "50%", left: "50%" }}
+                  >
+                    <LoadingSpinner></LoadingSpinner>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+
             <Modal show={this.state.modal_show}>
               <Modal.Header>
                 <Modal.Title>Game Return</Modal.Title>
@@ -418,6 +459,16 @@ class Return extends Component {
                     Enter OTP
                     <input type="number" name="otp" />
                   </div>
+                  {this.state.otp_issued ? (
+                    <Toast>
+                      <Toast.Header>
+                        <strong className="mr-auto">OTP</strong>
+                      </Toast.Header>
+                      <Toast.Body>{this.state.message}</Toast.Body>
+                    </Toast>
+                  ) : (
+                    <LoadingSpinner></LoadingSpinner>
+                  )}
                 </Modal.Body>
 
                 <Modal.Footer>
@@ -425,15 +476,19 @@ class Return extends Component {
                     Close
                   </Button>
                   <Button variant="primary" type="submit">
-                    Save changes
+                    {this.state.verifying ? (
+                      <LoadingSpinner></LoadingSpinner>
+                    ) : (
+                      "Verify"
+                    )}
                   </Button>
                 </Modal.Footer>
               </form>
             </Modal>
           </table>
         </div>
-      );
-    } else return <div>No game to return</div>;
+      </div>
+    );
   }
 }
 

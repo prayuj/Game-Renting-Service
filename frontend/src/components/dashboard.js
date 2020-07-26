@@ -4,6 +4,8 @@ import "react-dates/lib/css/_datepicker.css";
 import axios from "axios";
 import Customer from "./customer";
 import Game from "./game";
+import loadingSpinner from "./loadingSpinner";
+import LoadingSpinner from "./loadingSpinner";
 
 class Dashboard extends Component {
   constructor(props) {
@@ -19,7 +21,10 @@ class Dashboard extends Component {
       MembershipEnding: 0,
       GamesIssued: 0,
       GamesReturn: 0,
-      message: "Today"
+      message: "Today",
+      issue_game_loaded: false,
+      return_game_loaded: false,
+      customers_loaded: false,
     };
     this.getDetails = this.getDetails.bind(this);
     this.getCustomers = this.getCustomers.bind(this);
@@ -38,79 +43,86 @@ class Dashboard extends Component {
   getDetails() {
     axios
       .get(
-        "http://localhost:4000/customer/CustomersAdded/from=" +
+        this.props.url +
+          "/customer/CustomersAdded/from=" +
           this.getToday() +
           "&to=" +
           this.getToday()
       )
-      .then(res => {
+      .then((res) => {
         this.setState({
-          CustomersAdded: res.data.CustomersAdded
+          CustomersAdded: res.data.CustomersAdded,
         });
       });
 
     axios
       .get(
-        "http://localhost:4000/customer/MembershipEnding/from=" +
+        this.props.url +
+          "/customer/MembershipEnding/from=" +
           this.getToday() +
           "&to=" +
           this.getToday()
       )
-      .then(res => {
+      .then((res) => {
         this.setState({
-          MembershipEnding: res.data.MembershipEnding
+          MembershipEnding: res.data.MembershipEnding,
         });
       });
 
     axios
       .get(
-        "http://localhost:4000/game/GamesIssued/from=" +
+        this.props.url +
+          "/game/GamesIssued/from=" +
           this.getToday() +
           "&to=" +
           this.getToday()
       )
-      .then(res => {
+      .then((res) => {
         this.setState({
-          GamesIssued: res.data.GamesIssued
+          GamesIssued: res.data.GamesIssued,
         });
       });
 
     axios
       .get(
-        "http://localhost:4000/game/GamesReturn/from=" +
+        this.props.url +
+          "/game/GamesReturn/from=" +
           this.getToday() +
           "&to=" +
           this.getToday()
       )
-      .then(res => {
+      .then((res) => {
         this.setState({
-          GamesReturn: res.data.GamesReturn
+          GamesReturn: res.data.GamesReturn,
         });
       });
   }
 
   getCustomers() {
-    axios.get("http://localhost:4000/customer/dashboard").then(res => {
+    axios.get(this.props.url + "/customer/dashboard").then((res) => {
       this.setState({
-        customers: res.data
+        customers: res.data,
+        customers_loaded: true,
       });
     });
   }
 
   getIssuedGames() {
-    axios.get("http://localhost:4000/game/dashboard/issue").then(res => {
+    axios.get(this.props.url + "/game/dashboard/issue").then((res) => {
       console.log(res.data);
       this.setState({
-        issue_game: res.data
+        issue_game: res.data,
+        issue_game_loaded: true,
       });
     });
   }
 
   getReturnedGames() {
-    axios.get("http://localhost:4000/game/dashboard/return").then(res => {
+    axios.get(this.props.url + "/game/dashboard/return").then((res) => {
       console.log(res.data);
       this.setState({
-        return_game: res.data
+        return_game: res.data,
+        return_game_loaded: true,
       });
     });
   }
@@ -132,7 +144,7 @@ class Dashboard extends Component {
       "Sep",
       "Oct",
       "Nov",
-      "Dec"
+      "Dec",
     ];
     var today = dd + "/" + month_names[mm] + "/" + yyyy;
     console.log(today);
@@ -151,63 +163,67 @@ class Dashboard extends Component {
     if (e.target.from.value !== "" && e.target.to.value !== "") {
       axios
         .get(
-          "http://localhost:4000/customer/CustomersAdded/from=" +
+          this.props.url +
+            "/customer/CustomersAdded/from=" +
             e.target.from.value +
             "&to=" +
             e.target.to.value
         )
-        .then(res => {
+        .then((res) => {
           this.setState({
-            CustomersAdded: res.data.CustomersAdded
+            CustomersAdded: res.data.CustomersAdded,
           });
         });
 
       axios
         .get(
-          "http://localhost:4000/customer/MembershipEnding/from=" +
+          this.props.url +
+            "/customer/MembershipEnding/from=" +
             e.target.from.value +
             "&to=" +
             e.target.to.value
         )
-        .then(res => {
+        .then((res) => {
           this.setState({
-            MembershipEnding: res.data.MembershipEnding
+            MembershipEnding: res.data.MembershipEnding,
           });
         });
 
       axios
         .get(
-          "http://localhost:4000/game/GamesIssued/from=" +
+          this.props.url +
+            "/game/GamesIssued/from=" +
             e.target.from.value +
             "&to=" +
             e.target.to.value
         )
-        .then(res => {
+        .then((res) => {
           this.setState({
-            GamesIssued: res.data.GamesIssued
+            GamesIssued: res.data.GamesIssued,
           });
         });
 
       axios
         .get(
-          "http://localhost:4000/game/GamesReturn/from=" +
+          this.props.url +
+            "/game/GamesReturn/from=" +
             e.target.from.value +
             "&to=" +
             e.target.to.value
         )
-        .then(res => {
+        .then((res) => {
           this.setState({
-            GamesReturn: res.data.GamesReturn
+            GamesReturn: res.data.GamesReturn,
           });
         });
       if (this.state.dateFrom === this.state.dateTo)
         if (this.state.dateFrom === this.getToday()) {
           this.setState({
-            message: "Today"
+            message: "Today",
           });
         } else {
           this.setState({
-            message: "on " + this.convertDate(this.state.dateTo) + " "
+            message: "on " + this.convertDate(this.state.dateTo) + " ",
           });
         }
       else
@@ -217,7 +233,7 @@ class Dashboard extends Component {
             this.convertDate(this.state.dateFrom) +
             " to " +
             this.convertDate(this.state.dateTo) +
-            " "
+            " ",
         });
     }
   }
@@ -238,7 +254,7 @@ class Dashboard extends Component {
 
     return (
       <div>
-        <span>
+        <div>
           <form onSubmit={this.getDashboardDetails}>
             Select Dates
             <input
@@ -246,7 +262,7 @@ class Dashboard extends Component {
               type="date"
               value={this.state.dateFrom}
               max={this.getToday()}
-              onChange={e => this.setState({ dateFrom: e.target.value })}
+              onChange={(e) => this.setState({ dateFrom: e.target.value })}
             />
             to
             <input
@@ -255,7 +271,7 @@ class Dashboard extends Component {
               value={this.state.dateTo}
               min={this.state.dateFrom}
               max={this.getToday()}
-              onChange={e => this.setState({ dateTo: e.target.value })}
+              onChange={(e) => this.setState({ dateTo: e.target.value })}
             />
             <input type="submit" className="btn btn-info" value="Get" />
           </form>
@@ -275,85 +291,126 @@ class Dashboard extends Component {
             {this.state.GamesReturn + " "}
             Games Returned {this.state.message}
           </h4>
-        </span>
+        </div>
         <hr />
         <br />
         <h3>Recently Issued Games</h3>
-        <table className="table" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th>Sr</th>
-              <th>Name</th>
-              <th>Issued To</th>
-              <th>Date Of Issue</th>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.issue_game.map((game, index) => (
-              <Game
-                mode="issue"
-                _id={game._id}
-                sr={index + 1}
-                name={game.gameInfo.name}
-                cust_name={game.customerInfo.name}
-                dateIssue={this.convertDate(game.date_issue)}
-              />
-            ))}
-          </tbody>
-        </table>
-        <hr />
-        <br />
-        <h3>Recently Returned Games</h3>
-        <table className="table" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th>Sr</th>
-              <th>Name</th>
-              <th>Returned By</th>
-              <th>Date Of Issue</th>
-              <th>Date Of Return</th>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.return_game.map((game, index) => (
-              <Game
-                mode="return"
-                _id={game._id}
-                sr={index + 1}
-                name={game.gameInfo.name}
-                cust_name={game.customerInfo.name}
-                dateIssue={this.convertDate(game.date_issue)}
-                dateReturn={this.convertDate(game.date_return)}
-              />
-            ))}
-          </tbody>
-        </table>
-        <hr />
-        <br />
-        <div>
-          <h3>Membership Ending Soon</h3>
-          <table className="table" style={{ marginTop: 20, padding: "2px" }}>
+        <div className="table-responsive-xl">
+          <table className="table" style={{ marginTop: 20 }}>
             <thead>
               <tr>
                 <th>Sr</th>
                 <th>Name</th>
-                <th>Email-ID</th>
-                <th>Date Ending</th>
+                <th>Issued To</th>
+                <th>Date Of Issue</th>
               </tr>
             </thead>
             <tbody>
-              {this.state.customers.map((customer, index) => (
-                <Customer
-                  mode="dashboard"
-                  id={customer._id}
-                  sr={index + 1}
-                  name={customer.name}
-                  email={customer.email}
-                  dateEnding={this.convertDate(customer.latestMembership.end)}
-                />
-              ))}
+              {this.state.issue_game_loaded ? (
+                this.state.issue_game.map((game, index) => (
+                  <Game
+                    mode="issue"
+                    _id={game._id}
+                    sr={index + 1}
+                    name={game.gameInfo.name}
+                    cust_name={game.customerInfo.name}
+                    dateIssue={this.convertDate(game.date_issue)}
+                  />
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="4"
+                    style={{ position: "relative", top: "50%", left: "50%" }}
+                  >
+                    <LoadingSpinner></LoadingSpinner>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
+        </div>
+        <hr />
+        <br />
+        <h3>Recently Returned Games</h3>
+        <div className="table-responsive-xl">
+          <table className="table" style={{ marginTop: 20 }}>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Name</th>
+                <th>Returned By</th>
+                <th>Date Of Issue</th>
+                <th>Date Of Return</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.return_game_loaded ? (
+                this.state.return_game.map((game, index) => (
+                  <Game
+                    mode="return"
+                    _id={game._id}
+                    sr={index + 1}
+                    name={game.gameInfo.name}
+                    cust_name={game.customerInfo.name}
+                    dateIssue={this.convertDate(game.date_issue)}
+                    dateReturn={this.convertDate(game.date_return)}
+                  />
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    style={{ position: "relative", top: "50%", left: "50%" }}
+                  >
+                    <LoadingSpinner></LoadingSpinner>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <hr />
+        <br />
+        <div>
+          <h3>Membership Ending Soon</h3>
+          <div className="table-responsive-xl">
+            <table className="table" style={{ marginTop: 20, padding: "2px" }}>
+              <thead>
+                <tr>
+                  <th>Sr</th>
+                  <th>Name</th>
+                  <th>Email-ID</th>
+                  <th>Date Ending</th>
+                </tr>
+              </thead>
+              <tbody>
+                {this.state.customers_loaded ? (
+                  this.state.customers.map((customer, index) => (
+                    <Customer
+                      mode="dashboard"
+                      id={customer._id}
+                      sr={index + 1}
+                      name={customer.name}
+                      email={customer.email}
+                      dateEnding={this.convertDate(
+                        customer.latestMembership.end
+                      )}
+                    />
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="4"
+                      style={{ position: "relative", top: "50%", left: "50%" }}
+                    >
+                      <LoadingSpinner></LoadingSpinner>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );

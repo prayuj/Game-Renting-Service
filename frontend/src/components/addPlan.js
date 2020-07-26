@@ -8,7 +8,7 @@ class AddPlan extends Component {
       id: props.match.params.id,
       name: "",
       membership: [],
-      status: false
+      status: false,
     };
     this.handleForm = this.handleForm.bind(this);
     this.getPlans = this.getPlans.bind(this);
@@ -19,9 +19,9 @@ class AddPlan extends Component {
   }
 
   getPlans() {
-    axios.get("http://localhost:4000/customer/" + this.state.id).then(res => {
+    axios.get(this.props.url + "/customer/" + this.state.id).then((res) => {
       this.setState({
-        membership: res.data.membership
+        membership: res.data.membership,
       });
     });
   }
@@ -63,22 +63,22 @@ class AddPlan extends Component {
       plan: plan,
       active: true,
       start: today,
-      end: endDate
+      end: endDate,
     };
     membership.push(new_membership);
     console.log(membership);
 
     let data = {
-      membership: membership
+      membership: membership,
     };
 
     axios
-      .post("http://localhost:4000/customer/add_plan/" + this.state.id, data)
-      .then(res => {
+      .post(this.props.url + "/customer/add_plan/" + this.state.id, data)
+      .then((res) => {
         console.log(res.data);
         this.getPlans();
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
   }
   render() {
     return (

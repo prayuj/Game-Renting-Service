@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import axios from "axios";
 import { Redirect } from "react-router-dom";
+import LoadingSpinner from "./loadingSpinner";
 
 class GamePage extends Component {
   constructor(props) {
@@ -9,7 +10,11 @@ class GamePage extends Component {
       id: props.match.params.id,
       name: "",
       description: "",
-      data: ""
+      data: "",
+      name_description_loaded: false,
+      data_loaded: false,
+      history_loaded: false,
+      history: [],
     };
   }
 
@@ -21,61 +26,64 @@ class GamePage extends Component {
 
   getGameDetail() {
     axios
-      .get("http://localhost:4000/game/" + this.state.id)
-      .then(res => {
+      .get(this.props.url + "/game/" + this.state.id)
+      .then((res) => {
         console.log(res.data, this.state.id);
         this.setState({
           name: res.data.name,
-          description: res.data.description
+          description: res.data.description,
+          name_description_loaded: true,
         });
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
   }
 
   getGameItemDetail() {
     axios
-      .get("http://localhost:4000/game/items/" + this.state.id)
-      .then(res => {
+      .get(this.props.url + "/game/items/" + this.state.id)
+      .then((res) => {
         console.log(res.data, this.state.id);
         this.setState({
-          data: res.data
+          data: res.data,
+          data_loaded: true,
         });
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
   }
 
   getHistory() {
     axios
-      .get("http://localhost:4000/game/history/" + this.state.id)
-      .then(res => {
+      .get(this.props.url + "/game/history/" + this.state.id)
+      .then((res) => {
         console.log(res.data, this.state.id);
         this.setState({
-          history: res.data
+          history: res.data,
+          history_loaded: true,
         });
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
   }
 
-  setRedirect = e => {
+  setRedirect = (e) => {
     console.log(e.target.value);
     if (e.target.attributes[0].value === "transaction") {
       this.setState({
         redirect_to_transaction: true,
-        transaction_id: e.target.attributes[1].value
+        transaction_id: e.target.attributes[1].value,
       });
     }
     if (e.target.value === "Update")
       this.setState({
-        redirect_to_update: true
+        redirect_to_update: true,
       });
 
     if (e.target.value === "Issue")
       this.setState({
-        redirect_to_issue: true
+        redirect_to_issue: true,
       });
     else
       this.setState({
-        redirect_to_add_plan: true
+        redirect_to_add_plan: true,
       });
   };
 
@@ -117,37 +125,47 @@ class GamePage extends Component {
       <div />
     );
 
-    let history = this.state.history ? (
-      this.state.history.map((hist, index) => (
-        <tr
-          value="transaction"
-          id={hist._id}
-          className="items"
-          onClick={this.setRedirect}
-        >
-          <td value="transaction" id={hist._id}>
-            {index + 1}
-          </td>
-          <td value="transaction" id={hist._id}>
-            {hist.gameInfo.items.serial_no}
-          </td>
-          <td value="transaction" id={hist._id}>
-            {hist.gameInfo.items.console}
-          </td>
-          <td value="transaction" id={hist._id}>
-            {hist.customerInfo.name}
-          </td>
-          <td value="transaction" id={hist._id}>
-            {this.convertDate(hist.date_issue)}
-          </td>
-          <td value="transaction" id={hist._id}>
-            {hist.return ? this.convertDate(hist.date_return) : "Not Returned"}
+    let history =
+      this.state.history.length > 0 ? (
+        this.state.history.map((hist, index) => (
+          <tr
+            value="transaction"
+            id={hist._id}
+            className="items"
+            onClick={this.setRedirect}
+          >
+            <td value="transaction" id={hist._id}>
+              {index + 1}
+            </td>
+            <td value="transaction" id={hist._id}>
+              {hist.gameInfo.items.serial_no}
+            </td>
+            <td value="transaction" id={hist._id}>
+              {hist.gameInfo.items.console}
+            </td>
+            <td value="transaction" id={hist._id}>
+              {hist.customerInfo.name}
+            </td>
+            <td value="transaction" id={hist._id}>
+              {this.convertDate(hist.date_issue)}
+            </td>
+            <td value="transaction" id={hist._id}>
+              {hist.return
+                ? this.convertDate(hist.date_return)
+                : "Not Returned"}
+            </td>
+          </tr>
+        ))
+      ) : (
+        <tr>
+          <td
+            colSpan="6"
+            style={{ position: "relative", top: "50%", left: "50%" }}
+          >
+            No Past History
           </td>
         </tr>
-      ))
-    ) : (
-      <div />
-    );
+      );
     return (
       <div>
         {this.renderRedirect()}
@@ -163,37 +181,81 @@ class GamePage extends Component {
           className="btn btn-primary"
           value="Issue"
         />
-        <h3>Name: {this.state.name}</h3>
-        <h3>Description: {this.state.description}</h3>
+        <h3>
+          Name:{" "}
+          {this.state.name_description_loaded ? (
+            this.state.name
+          ) : (
+            <LoadingSpinner></LoadingSpinner>
+          )}
+        </h3>
+        <h3>
+          Description:{" "}
+          {this.state.name_description_loaded ? (
+            this.state.description
+          ) : (
+            <LoadingSpinner></LoadingSpinner>
+          )}
+        </h3>
         <br />
         <h3>Current Status of Items:</h3>
-        <table className="table" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th>Sr</th>
-              <th>Serial Number</th>
-              <th>Console</th>
-              <th>Status</th>
-              <th>Responsible</th>
-            </tr>
-          </thead>
-          <tbody>{items}</tbody>
-        </table>
+        <div className="table-responsive-xl">
+          <table className="table" style={{ marginTop: 20 }}>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Serial Number</th>
+                <th>Console</th>
+                <th>Status</th>
+                <th>Responsible</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.data_loaded ? (
+                items
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    style={{ position: "relative", top: "50%", left: "50%" }}
+                  >
+                    <LoadingSpinner></LoadingSpinner>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
         <br />
         <h3>Past History of Items:</h3>
-        <table className="table" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th>Sr</th>
-              <th>Serial Number</th>
-              <th>Console</th>
-              <th>Name</th>
-              <th>Date Issue</th>
-              <th>Date Return</th>
-            </tr>
-          </thead>
-          <tbody>{history}</tbody>
-        </table>
+        <div className="table-responsive-xl">
+          <table className="table" style={{ marginTop: 20 }}>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Serial Number</th>
+                <th>Console</th>
+                <th>Name</th>
+                <th>Date Issue</th>
+                <th>Date Return</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.history_loaded ? (
+                history
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    style={{ position: "relative", top: "50%", left: "50%" }}
+                  >
+                    <LoadingSpinner></LoadingSpinner>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }

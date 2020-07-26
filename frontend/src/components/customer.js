@@ -14,7 +14,7 @@ class Customer extends Component {
         email: props.email,
         noOfGames: props.noOfGames,
         dateOfJoin: props.dateOfJoin,
-        dateOfMembershipEnd: props.dateOfMembershipEnd
+        dateOfMembershipEnd: props.dateOfMembershipEnd,
       };
     if (props.mode == "dashboard")
       this.state = {
@@ -23,7 +23,7 @@ class Customer extends Component {
         sr: props.sr,
         name: props.name,
         email: props.email,
-        dateEnding: props.dateEnding
+        dateEnding: props.dateEnding,
       };
     this.setRedirect = this.setRedirect.bind(this);
   }
@@ -38,7 +38,7 @@ class Customer extends Component {
         email: nextProps.email,
         noOfGames: nextProps.noOfGames,
         dateOfJoin: nextProps.dateOfJoin,
-        dateOfMembershipEnd: nextProps.dateOfMembershipEnd
+        dateOfMembershipEnd: nextProps.dateOfMembershipEnd,
       });
 
     if (nextProps.mode == "dashboard")
@@ -48,13 +48,13 @@ class Customer extends Component {
         sr: nextProps.sr,
         name: nextProps.name,
         email: nextProps.email,
-        dateEnding: nextProps.dateEnding
+        dateEnding: nextProps.dateEnding,
       });
   }
   setRedirect = () => {
     console.log("Test");
     this.setState({
-      redirect: true
+      redirect: true,
     });
   };
 

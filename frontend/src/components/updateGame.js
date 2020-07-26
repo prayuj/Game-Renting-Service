@@ -15,9 +15,9 @@ class UpdateGame extends Component {
           console: "",
           id: 1,
           serial: "",
-          mrp: ""
-        }
-      ]
+          mrp: "",
+        },
+      ],
     };
     this.onSubmit = this.onSubmit.bind(this);
   }
@@ -43,7 +43,7 @@ class UpdateGame extends Component {
           status: "Available",
           responsible: "Owner",
           mrp: mrp,
-          description: "Test"
+          description: "Test",
         });
       } else {
         console.log("We are in old block");
@@ -60,31 +60,31 @@ class UpdateGame extends Component {
       _id: this.state.id,
       name: e.target.name.value,
       description: e.target.description.value,
-      items: temp_items
+      items: temp_items,
     };
 
     axios
-      .post("http://localhost:4000/game/update/" + this.state.id, newGame)
-      .then(res => {
+      .post(this.props.url + "/game/update/" + this.state.id, newGame)
+      .then((res) => {
         console.log(res.data);
         this.setRedirect();
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
   }
 
   getGame() {
     axios
-      .get("http://localhost:4000/game/" + this.state.id)
-      .then(res => {
+      .get(this.props.url + "/game/" + this.state.id)
+      .then((res) => {
         console.log(res.data);
         this.setState({
           name: res.data.name,
           description: res.data.description,
           items: res.data.items,
-          count: res.data.items.length
+          count: res.data.items.length,
         });
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
   }
@@ -92,7 +92,7 @@ class UpdateGame extends Component {
   setRedirect = () => {
     console.log("Test");
     this.setState({
-      redirect: true
+      redirect: true,
     });
   };
 

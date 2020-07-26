@@ -16,7 +16,7 @@ class UpdateCustomer extends Component {
       zip: "",
       mobile_no: "",
       alt_mobile_no: "",
-      membership: []
+      membership: [],
     };
     this.handleForm = this.handleForm.bind(this);
   }
@@ -26,7 +26,7 @@ class UpdateCustomer extends Component {
   }
 
   getData() {
-    axios.get("http://localhost:4000/customer/" + this.state.id).then(res => {
+    axios.get(this.props.url + "/customer/" + this.state.id).then((res) => {
       this.setState({
         name: res.data.name,
         email: res.data.email,
@@ -36,7 +36,7 @@ class UpdateCustomer extends Component {
         zip: res.data.zip,
         mobile_no: res.data.mobile_no,
         alt_mobile_no: res.data.alt_mobile_no,
-        membership: res.data.membership
+        membership: res.data.membership,
       });
       console.log(res.data);
     });
@@ -75,16 +75,16 @@ class UpdateCustomer extends Component {
       city: e.target.inputCity.value,
       zip: e.target.inputZip.value,
       mobile_no: e.target.mobileNo1.value,
-      alt_mobile_no: e.target.mobileNo1.value
+      alt_mobile_no: e.target.mobileNo1.value,
     };
 
     axios
-      .post("http://localhost:4000/customer/update/" + this.state.id, customer)
-      .then(res => {
+      .post(this.props.url + "/customer/update/" + this.state.id, customer)
+      .then((res) => {
         console.log(res.data);
         this.setRedirect();
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
     // console.log(customer);
@@ -93,7 +93,7 @@ class UpdateCustomer extends Component {
   setRedirect = () => {
     console.log("Test");
     this.setState({
-      redirect: true
+      redirect: true,
     });
   };
 

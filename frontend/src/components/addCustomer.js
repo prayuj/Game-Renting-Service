@@ -8,7 +8,7 @@ class AddCustomer extends Component {
     super(props);
     this.handleForm = this.handleForm.bind(this);
     this.state = {
-      redirect_to_dashboard: false
+      redirect_to_dashboard: false,
     };
   }
 
@@ -53,22 +53,22 @@ class AddCustomer extends Component {
       mobile_no: e.target.mobileNo1.value,
       alt_mobile_no: e.target.mobileNo2.value,
       dateOfJoin: today,
-      membership: [{ plan: plan, start: today, end: endDate, active: true }]
+      membership: [{ plan: plan, start: today, end: endDate, active: true }],
     };
     console.log(customer);
 
     axios
-      .post("http://localhost:4000/customer/add", customer)
-      .then(res => {
+      .post(this.props.url + "/add", customer)
+      .then((res) => {
         console.log(res.data);
         this.setState({
-          redirect_to_dashboard: true
+          redirect_to_dashboard: true,
         });
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
         this.setState({
-          status: "An Error has occured, check console log."
+          status: "An Error has occured, check console log.",
         });
       });
   }

@@ -3,6 +3,8 @@ import axios from "axios";
 import { Redirect } from "react-router-dom";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
+import Toast from "react-bootstrap/Toast";
+import LoadingSpinner from "./loadingSpinner";
 
 class Issue extends Component {
   constructor(props) {
@@ -16,7 +18,9 @@ class Issue extends Component {
         console: [],
         redirect_to_transaction: false,
         modal_show: false,
-        button_disable: true
+        button_disable: true,
+        otp_issued: false,
+        verifying: false,
       };
     else if (props.match.params.mode === "game")
       this.state = {
@@ -27,7 +31,9 @@ class Issue extends Component {
         console: [],
         redirect_to_transaction: false,
         modal_show: false,
-        button_disable: true
+        button_disable: true,
+        otp_issued: false,
+        verifying: false,
       };
     else if (props.match.params.mode === "dashboard")
       this.state = {
@@ -38,7 +44,9 @@ class Issue extends Component {
         console: [],
         redirect_to_transaction: false,
         modal_show: false,
-        button_disable: true
+        button_disable: true,
+        otp_issued: false,
+        verifying: false,
       };
     this.handleForm = this.handleForm.bind(this);
     this.handleGameChange = this.handleGameChange.bind(this);
@@ -57,7 +65,7 @@ class Issue extends Component {
         this.setState(
           {
             mode: "customer",
-            customer_id: this.props.match.params.id
+            customer_id: this.props.match.params.id,
           },
           () => {
             this.getCustomerDetail();
@@ -68,7 +76,7 @@ class Issue extends Component {
         this.setState(
           {
             mode: "game",
-            game_id: this.props.match.params.id
+            game_id: this.props.match.params.id,
           },
           () => {
             this.getCustomerDetail();
@@ -79,7 +87,7 @@ class Issue extends Component {
         this.setState(
           {
             mode: "dashboard",
-            show: true
+            show: true,
           },
           () => {
             this.getCustomerDetail();
@@ -92,47 +100,47 @@ class Issue extends Component {
   getCustomerDetail() {
     if (this.state.mode === "customer") {
       axios
-        .get("http://localhost:4000/customer/issue/" + this.state.customer_id)
-        .then(res => {
+        .get(this.props.url + "/customer/issue/" + this.state.customer_id)
+        .then((res) => {
           console.log(res.data);
           this.setState({
-            customers: [res.data]
+            customers: [res.data],
           });
           if (res.data.length == 0) {
             console.log("No Active Membership");
             this.setState({
-              show: false
+              show: false,
             });
           } else if (res.data.plan === "1Y4G" && res.data.noOfGames < 4) {
             console.log("4 game plan");
             this.setState({
-              show: true
+              show: true,
             });
           } else if (res.data.plan === "6M2G" && res.data.noOfGames < 2) {
             console.log("2 game plan");
             this.setState({
-              show: true
+              show: true,
             });
           } else if (res.data.plan === "3M1G" && res.data.noOfGames < 1) {
             console.log("1 game plan");
             this.setState({
-              show: true
+              show: true,
             });
           } else {
             console.log("5th condition");
             this.setState({
-              show: false
+              show: false,
             });
           }
           this.setState({
-            data: res.data[0]
+            data: res.data[0],
           });
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     } else {
       axios
-        .get("http://localhost:4000/customer")
-        .then(res => {
+        .get(this.props.url + "/customer")
+        .then((res) => {
           let customers_to_display = [];
           for (let i = 0; i < res.data.length; i++) {
             if (res.data[i].latestMembership.active) {
@@ -160,52 +168,50 @@ class Issue extends Component {
             }
           }
           this.setState({
-            customers: customers_to_display
+            customers: customers_to_display,
           });
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     }
   }
   getGames() {
     if (this.state.mode === "game")
-      axios
-        .get("http://localhost:4000/game/" + this.state.game_id)
-        .then(res => {
-          console.log(res.data);
-          this.setState({
-            games: [res.data]
-          });
-          if (res.data.numberAvailable > 0) {
-            this.setState({
-              show: true
-            });
-          }
-          if (
-            res.data.numberPS4Available > 0 &&
-            res.data.numberXBOXAvailable > 0
-          ) {
-            this.setState({
-              console: ["PS4", "XBOX One"]
-            });
-          } else if (res.data.numberPS4Available > 0) {
-            this.setState({
-              console: ["PS4"]
-            });
-          } else if (res.data.numberXBOXAvailable > 0) {
-            this.setState({
-              console: ["XBOX One"]
-            });
-          } else {
-            this.setState({
-              console: []
-            });
-          }
-        });
-    else
-      axios.get("http://localhost:4000/game").then(res => {
+      axios.get(this.props.url + "/game/" + this.state.game_id).then((res) => {
         console.log(res.data);
         this.setState({
-          games: res.data
+          games: [res.data],
+        });
+        if (res.data.numberAvailable > 0) {
+          this.setState({
+            show: true,
+          });
+        }
+        if (
+          res.data.numberPS4Available > 0 &&
+          res.data.numberXBOXAvailable > 0
+        ) {
+          this.setState({
+            console: ["PS4", "XBOX One"],
+          });
+        } else if (res.data.numberPS4Available > 0) {
+          this.setState({
+            console: ["PS4"],
+          });
+        } else if (res.data.numberXBOXAvailable > 0) {
+          this.setState({
+            console: ["XBOX One"],
+          });
+        } else {
+          this.setState({
+            console: [],
+          });
+        }
+      });
+    else
+      axios.get(this.props.url + "/game").then((res) => {
+        console.log(res.data);
+        this.setState({
+          games: res.data,
         });
       });
   }
@@ -223,6 +229,10 @@ class Issue extends Component {
       e.target.console.value,
       e.target.customer.value
     );
+    this.setState({
+      otp_issued: false,
+      verifying: false,
+    });
     if (
       e.target.game.value != "default" &&
       e.target.console.value != "default" &&
@@ -233,10 +243,11 @@ class Issue extends Component {
         game_id: e.target.game.value,
         selected_console: e.target.console.value,
         customer_id: e.target.customer.value,
-        button_disable: false
+        button_disable: false,
       });
       console.log(
-        "http://localhost:4000/customer/generate_otp/id=" +
+        this.props.url +
+          "/customer/generate_otp/id=" +
           e.target.customer.value +
           "&mode=Issuing" +
           "&game=" +
@@ -244,15 +255,21 @@ class Issue extends Component {
           "&console=" +
           e.target.console.value
       );
-      axios.get(
-        "http://localhost:4000/customer/generate_otp/id=" +
-          e.target.customer.value +
-          "&mode=Issuing" +
-          "&game=" +
-          e.target.game.value +
-          "&console=" +
-          e.target.console.value
-      );
+      axios
+        .get(
+          this.props.url +
+            "/customer/generate_otp/id=" +
+            e.target.customer.value +
+            "&mode=Issuing" +
+            "&game=" +
+            e.target.game.value +
+            "&console=" +
+            e.target.console.value
+        )
+        .then((res) => {
+          console.log(res.data);
+          this.setState({ message: res.data.message, otp_issued: true });
+        });
     } else this.setState({ modal_show: true });
   }
   handleForm(e) {
@@ -263,32 +280,35 @@ class Issue extends Component {
     let game_console = this.state.selected_console;
     let data = {
       game_id: game_id,
-      console: game_console
+      console: game_console,
     };
+    this.setState({
+      verifying: true,
+    });
     console.log(JSON.stringify(data));
     axios
-      .post("http://localhost:4000/customer/verify_otp/" + customer_id, {
-        otp: e.target.otp.value
+      .post(this.props.url + "/customer/verify_otp/" + customer_id, {
+        otp: e.target.otp.value,
       })
-      .then(res => {
+      .then((res) => {
         console.log(res.data.isVerify);
         if (res.data.isVerify) {
           axios
-            .post("http://localhost:4000/customer/issue/" + customer_id, data)
-            .then(res => {
+            .post(this.props.url + "/customer/issue/" + customer_id, data)
+            .then((res) => {
               if (res.data.game != "Not Available") {
                 this.setState({
-                  show: true
+                  show: true,
                 });
                 this.setState({
-                  transactionid: res.data.game
+                  transactionid: res.data.game,
                 });
                 this.setRedirect();
               } else {
                 alert(res.data.game);
               }
             })
-            .catch(err => {
+            .catch((err) => {
               alert(JSON.stringify(err));
             });
         } else {
@@ -307,19 +327,19 @@ class Issue extends Component {
           games[i].numberXBOXAvailable > 0
         ) {
           this.setState({
-            console: ["PS4", "XBOX One"]
+            console: ["PS4", "XBOX One"],
           });
         } else if (games[i].numberPS4Available > 0) {
           this.setState({
-            console: ["PS4"]
+            console: ["PS4"],
           });
         } else if (games[i].numberXBOXAvailable > 0) {
           this.setState({
-            console: ["XBOX One"]
+            console: ["XBOX One"],
           });
         } else {
           this.setState({
-            console: []
+            console: [],
           });
         }
       }
@@ -328,7 +348,7 @@ class Issue extends Component {
 
   setRedirect = () => {
     this.setState({
-      redirect_to_transaction: true
+      redirect_to_transaction: true,
     });
   };
 
@@ -348,7 +368,7 @@ class Issue extends Component {
           </select>
         ) : (
           <select className="form-control" name="console">
-            {this.state.console.map(cons => (
+            {this.state.console.map((cons) => (
               <option>{cons}</option>
             ))}
           </select>
@@ -356,7 +376,7 @@ class Issue extends Component {
       if (this.state.mode === "customer") {
         customers = (
           <select className="form-control" name="customer" disabled={true}>
-            {this.state.customers.map(customer => (
+            {this.state.customers.map((customer) => (
               <option value={customer._id}>{customer.name}</option>
             ))}
           </select>
@@ -371,7 +391,7 @@ class Issue extends Component {
             <option value="" selected disabled hidden>
               Choose a Game
             </option>
-            {this.state.games.map(game => (
+            {this.state.games.map((game) => (
               <option value={game._id}>{game.name}</option>
             ))}
           </select>
@@ -384,7 +404,7 @@ class Issue extends Component {
             <option value="" selected disabled hidden>
               Choose a Customer
             </option>
-            {this.state.customers.map(customer => (
+            {this.state.customers.map((customer) => (
               <option value={customer._id}>{customer.name}</option>
             ))}
           </select>
@@ -392,7 +412,7 @@ class Issue extends Component {
 
         games = (
           <select className="form-control" name="game" disabled={true}>
-            {this.state.games.map(game => (
+            {this.state.games.map((game) => (
               <option value={game._id}>{game.name}</option>
             ))}
           </select>
@@ -405,7 +425,7 @@ class Issue extends Component {
             <option value="" selected disabled hidden>
               Choose a Customer
             </option>
-            {this.state.customers.map(customer => (
+            {this.state.customers.map((customer) => (
               <option value={customer._id}>{customer.name}</option>
             ))}
           </select>
@@ -421,7 +441,7 @@ class Issue extends Component {
             <option value="" selected disabled hidden>
               Choose a Game
             </option>
-            {this.state.games.map(game => (
+            {this.state.games.map((game) => (
               <option value={game._id}>{game.name}</option>
             ))}
           </select>
@@ -453,10 +473,20 @@ class Issue extends Component {
                 {this.state.button_disable ? (
                   <p>Fill in Details</p>
                 ) : (
-                  <div>
-                    Enter OTP
+                  <>
+                    <div>Enter OTP</div>
                     <input type="number" name="otp" />
-                  </div>
+                    {this.state.otp_issued ? (
+                      <Toast>
+                        <Toast.Header>
+                          <strong className="mr-auto">OTP</strong>
+                        </Toast.Header>
+                        <Toast.Body>{this.state.message}</Toast.Body>
+                      </Toast>
+                    ) : (
+                      <LoadingSpinner></LoadingSpinner>
+                    )}
+                  </>
                 )}
               </Modal.Body>
 
@@ -469,7 +499,11 @@ class Issue extends Component {
                   type="submit"
                   disabled={this.state.button_disable}
                 >
-                  Save changes
+                  {this.state.verifying ? (
+                    <LoadingSpinner></LoadingSpinner>
+                  ) : (
+                    "Verify"
+                  )}
                 </Button>
               </Modal.Footer>
             </form>
